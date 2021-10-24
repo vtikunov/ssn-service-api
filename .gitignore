@@ -1,2 +1,5 @@
-.idea
-.vcs
+**/.idea
+**/.vscode
+bin
+
+cover.out
