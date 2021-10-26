@@ -18,8 +18,8 @@ import (
 //
 type EventRepo interface {
 	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
-	Unlock(ctx context.Context, eventIDs []uint64) error
+	Unlock(eventIDs []uint64) error
 
 	Add(ctx context.Context, event []subscription.ServiceEvent) error
-	Remove(ctx context.Context, eventIDs []uint64) error
+	Remove(eventIDs []uint64) error
 }

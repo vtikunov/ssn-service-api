@@ -2,7 +2,7 @@ package retranslator
 
 import (
 	"context"
-	"log"
+	"sync"
 	"time"
 
 	"github.com/ozonmp/ssn-service-api/internal/app/consumer"
@@ -13,20 +13,20 @@ import (
 )
 
 type consumerPool interface {
-	Start(ctx context.Context)
+	Start(ctx context.Context) (doneChannel <-chan interface{})
 	StopWait()
 }
 
 type producerPool interface {
-	Start(ctx context.Context)
+	Start(ctx context.Context) (doneChannel <-chan interface{})
 	StopWait()
 }
 
 type eventRepo interface {
 	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
-	Unlock(ctx context.Context, eventIDs []uint64) error
+	Unlock(eventIDs []uint64) error
 
-	Remove(ctx context.Context, eventIDs []uint64) error
+	Remove(eventIDs []uint64) error
 }
 
 type eventSender interface {
@@ -80,7 +80,8 @@ type Configuration struct {
 type retranslator struct {
 	consumerPool consumerPool
 	producerPool producerPool
-	isStarted    bool
+	onceStart    *sync.Once
+	onceStop     *sync.Once
 }
 
 // NewRetranslator создает новый ретранслятор.
@@ -102,17 +103,23 @@ func NewRetranslator(cfg *Configuration) *retranslator {
 	return &retranslator{
 		consumerPool: consumerPool,
 		producerPool: producerPool,
+		onceStart:    &sync.Once{},
+		onceStop:     &sync.Once{},
 	}
 }
 
 // Start запускает работу ретранслятора.
 func (r *retranslator) Start(ctx context.Context) {
-	if r.isStarted {
-		log.Panic("retranslator is already started")
-	}
-	r.isStarted = true
-	r.producerPool.Start(ctx)
-	r.consumerPool.Start(ctx)
+	r.onceStart.Do(func() {
+		doneChannel := r.consumerPool.Start(ctx)
+		go func() {
+			ctxP, cancelCtx := context.WithCancel(context.Background())
+			r.producerPool.Start(ctxP)
+
+			<-doneChannel
+			cancelCtx()
+		}()
+	})
 }
 
 // StopWait отправляет команду Stop пулам консьюмеров и продьюсеров,
@@ -120,10 +127,8 @@ func (r *retranslator) Start(ctx context.Context) {
 //
 // Обратите внимание! Метод возвращает return после остановки ретранслятора.
 func (r *retranslator) StopWait() {
-	if !r.isStarted {
-		log.Panic("retranslator is already stopped")
-	}
-	r.consumerPool.StopWait()
-	r.producerPool.StopWait()
-	r.isStarted = false
+	r.onceStop.Do(func() {
+		r.consumerPool.StopWait()
+		r.producerPool.StopWait()
+	})
 }

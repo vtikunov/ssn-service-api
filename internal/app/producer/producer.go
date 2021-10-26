@@ -3,6 +3,7 @@ package producer
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/gammazero/workerpool"
@@ -20,8 +21,8 @@ type eventSender interface {
 }
 
 type eventRepoUnlockRemover interface {
-	Unlock(ctx context.Context, eventIDs []uint64) error
-	Remove(ctx context.Context, eventIDs []uint64) error
+	Unlock(eventIDs []uint64) error
+	Remove(eventIDs []uint64) error
 }
 
 type producer struct {
@@ -31,9 +32,10 @@ type producer struct {
 	eventRepo     eventRepoUnlockRemover
 	doneChannel   chan interface{}
 	stopChannel   chan interface{}
-	isStarted     bool
 	workerPool    *workerpool.WorkerPool
 	maxWorkers    int
+	onceStart     *sync.Once
+	onceStop      *sync.Once
 }
 
 // NewProducer создает нового воркера-продьюсера.
@@ -59,12 +61,18 @@ func NewProducer(
 	maxWorkers uint64,
 ) *producer {
 
+	if maxWorkers == 0 {
+		log.Panicln("maxWorkers must be greater than 0")
+	}
+
 	return &producer{
 		timeout:       timeout,
 		eventsChannel: eventsChannel,
 		sender:        sender,
 		eventRepo:     eventRepo,
 		maxWorkers:    int(maxWorkers),
+		onceStart:     &sync.Once{},
+		onceStop:      &sync.Once{},
 	}
 }
 
@@ -72,57 +80,64 @@ func NewProducer(
 //
 // Возвращает канал для чтения doneChannel, который закрывается продьюсером при его остановке.
 func (p *producer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
-	if p.isStarted {
-		log.Panic("producer is already started")
-	}
-	p.isStarted = true
-	p.doneChannel = make(chan interface{})
-	p.stopChannel = make(chan interface{})
-	p.workerPool = workerpool.New(p.maxWorkers)
+	p.onceStart.Do(func() {
+		p.doneChannel = make(chan interface{})
+		p.stopChannel = make(chan interface{})
+		p.workerPool = workerpool.New(p.maxWorkers)
 
-	sendEventAndUnlockOrRemove := func(event *subscription.ServiceEvent) {
-		if err := p.sender.Send(ctx, event); err != nil {
-			log.Printf("producer: failed to send event with ID %v - %v", event.ID, err)
-			p.workerPool.Submit(func() {
-				if err := p.eventRepo.Unlock(ctx, []uint64{event.ID}); err != nil {
-					log.Printf("producer: failed to unlock event with ID %v after fail send - %v", event.ID, err)
-				}
-			})
+		sendEventAndUnlockOrRemove := func(event *subscription.ServiceEvent) {
+			if err := p.sender.Send(ctx, event); err != nil {
+				log.Printf("producer: failed to send event with ID %v - %v", event.ID, err)
+				p.workerPool.Submit(func() {
+					if err := p.eventRepo.Unlock([]uint64{event.ID}); err != nil {
+						log.Printf("producer: failed to unlock event with ID %v after fail send - %v", event.ID, err)
+					}
+				})
 
-			return
-		}
-
-		p.workerPool.Submit(func() {
-			if err := p.eventRepo.Remove(ctx, []uint64{event.ID}); err != nil {
-				log.Printf("producer: failed to remove event with ID %v after send - %v", event.ID, err)
-			}
-		})
-	}
-
-	go func() {
-		defer close(p.doneChannel)
-		defer p.workerPool.StopWait()
-		timeout := time.NewTimer(p.timeout)
-
-		for {
-			select {
-			case event := <-p.eventsChannel:
-				sendEventAndUnlockOrRemove(&event)
-			case <-ctx.Done():
-				if len(p.eventsChannel) == 0 {
-					return
-				}
-			case <-p.stopChannel:
-				if len(p.eventsChannel) == 0 {
-					return
-				}
-			case <-timeout.C:
 				return
 			}
+
+			p.workerPool.Submit(func() {
+				if err := p.eventRepo.Remove([]uint64{event.ID}); err != nil {
+					log.Printf("producer: failed to remove event with ID %v after send - %v", event.ID, err)
+				}
+			})
 		}
-	}()
+
+		go func() {
+			defer func() {
+				p.workerPool.StopWait()
+				close(p.doneChannel)
+			}()
+
+			timeout := time.NewTimer(p.timeout)
+
+			for {
+				select {
+				case event := <-p.eventsChannel:
+					sendEventAndUnlockOrRemove(&event)
+
+					continue
+				case <-ctx.Done():
+					p.stop()
+				case <-p.stopChannel:
+					if len(p.eventsChannel) == 0 {
+						return
+					}
+				case <-timeout.C:
+					return
+				}
+			}
+		}()
+	})
 
 	return p.doneChannel
+}
+
+func (p *producer) stop() {
+	p.onceStop.Do(func() {
+		close(p.stopChannel)
+	})
 }
 
 // StopWait отправляет команду Stop продьюсеру,
@@ -130,13 +145,8 @@ func (p *producer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 //
 // Обратите внимание! Метод возвращает return после остановки продьюсера.
 func (p *producer) StopWait() {
-	if !p.isStarted {
-		log.Panic("producer is already stopped")
-	}
-	close(p.stopChannel)
+	p.stop()
 	<-p.doneChannel
-
-	p.isStarted = false
 }
 
 type producerFactory struct {

@@ -3,6 +3,7 @@ package consumerpool
 import (
 	"context"
 	"log"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -19,7 +20,8 @@ type consumerPool struct {
 	consumerTimeout time.Duration
 	doneChannel     chan interface{}
 	stopChannel     chan interface{}
-	isStarted       bool
+	onceStart       *sync.Once
+	onceStop        *sync.Once
 }
 
 // NewConsumerPool создает пул воркеров-консьюмеров.
@@ -40,26 +42,28 @@ func NewConsumerPool(
 ) *consumerPool {
 
 	if maxConsumers == 0 {
-		maxConsumers = 1
+		log.Panicln("maxConsumers must be greater than 0")
 	}
 
 	return &consumerPool{
 		maxConsumers:    int64(maxConsumers),
 		consumerFactory: consumerFactory,
 		consumerTimeout: consumerTimeout,
+		onceStart:       &sync.Once{},
+		onceStop:        &sync.Once{},
 	}
 }
 
 // Start запускает работу пула.
-func (cp *consumerPool) Start(ctx context.Context) {
-	if cp.isStarted {
-		log.Panic("pull is already started")
-	}
-	cp.isStarted = true
-	cp.doneChannel = make(chan interface{})
-	cp.stopChannel = make(chan interface{})
+func (cp *consumerPool) Start(ctx context.Context) (doneChannel <-chan interface{}) {
+	cp.onceStart.Do(func() {
+		cp.doneChannel = make(chan interface{})
+		cp.stopChannel = make(chan interface{})
 
-	go cp.dispatch(ctx)
+		go cp.dispatch(ctx)
+	})
+
+	return cp.doneChannel
 }
 
 func (cp *consumerPool) dispatch(ctx context.Context) {
@@ -69,6 +73,8 @@ func (cp *consumerPool) dispatch(ctx context.Context) {
 
 	for {
 		select {
+		case <-ctx.Done():
+			cp.stop()
 		case <-cp.stopChannel:
 			if atomic.LoadInt64(&consumerCount) == 0 {
 				return
@@ -87,8 +93,6 @@ func (cp *consumerPool) dispatch(ctx context.Context) {
 
 				select {
 				case <-doneChannel:
-				case <-ctx.Done():
-					consumer.StopWait()
 				case <-cp.stopChannel:
 					consumer.StopWait()
 				case <-timeout.C:
@@ -99,16 +103,17 @@ func (cp *consumerPool) dispatch(ctx context.Context) {
 	}
 }
 
+func (cp *consumerPool) stop() {
+	cp.onceStop.Do(func() {
+		close(cp.stopChannel)
+	})
+}
+
 // StopWait отправляет команду Stop всем работающим воркерам,
 // дожидается окончания их работы и останавливает работу пула.
 //
 // Обратите внимание! Метод возвращает return после остановки пула.
 func (cp *consumerPool) StopWait() {
-	if !cp.isStarted {
-		log.Panic("pull is already stopped")
-	}
-	close(cp.stopChannel)
+	cp.stop()
 	<-cp.doneChannel
-
-	cp.isStarted = false
 }

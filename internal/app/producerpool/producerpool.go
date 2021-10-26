@@ -2,7 +2,9 @@ package producerpool
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -19,7 +21,8 @@ type producerPool struct {
 	producerTimeout time.Duration
 	doneChannel     chan interface{}
 	stopChannel     chan interface{}
-	isStarted       bool
+	onceStart       *sync.Once
+	onceStop        *sync.Once
 }
 
 // NewProducerPool создает пул воркеров-продьюсеров.
@@ -40,26 +43,29 @@ func NewProducerPool(
 ) *producerPool {
 
 	if maxProducers == 0 {
-		maxProducers = 1
+		fmt.Println(maxProducers)
+		log.Panicln("maxProducers must be greater than 0")
 	}
 
 	return &producerPool{
 		maxProducers:    int64(maxProducers),
 		producerFactory: producerFactory,
 		producerTimeout: producerTimeout,
+		onceStart:       &sync.Once{},
+		onceStop:        &sync.Once{},
 	}
 }
 
 // Start запускает работу пула.
-func (pp *producerPool) Start(ctx context.Context) {
-	if pp.isStarted {
-		log.Panic("pull is already started")
-	}
-	pp.isStarted = true
-	pp.doneChannel = make(chan interface{})
-	pp.stopChannel = make(chan interface{})
+func (pp *producerPool) Start(ctx context.Context) (doneChannel <-chan interface{}) {
+	pp.onceStart.Do(func() {
+		pp.doneChannel = make(chan interface{})
+		pp.stopChannel = make(chan interface{})
 
-	go pp.dispatch(ctx)
+		go pp.dispatch(ctx)
+	})
+
+	return pp.doneChannel
 }
 
 func (pp *producerPool) dispatch(ctx context.Context) {
@@ -70,9 +76,7 @@ func (pp *producerPool) dispatch(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			if atomic.LoadInt64(&producerCount) == 0 {
-				return
-			}
+			pp.stop()
 		case <-pp.stopChannel:
 			if atomic.LoadInt64(&producerCount) == 0 {
 				return
@@ -91,8 +95,6 @@ func (pp *producerPool) dispatch(ctx context.Context) {
 
 				select {
 				case <-doneChannel:
-				case <-ctx.Done():
-					producer.StopWait()
 				case <-pp.stopChannel:
 					producer.StopWait()
 				case <-timeout.C:
@@ -103,16 +105,17 @@ func (pp *producerPool) dispatch(ctx context.Context) {
 	}
 }
 
+func (pp *producerPool) stop() {
+	pp.onceStop.Do(func() {
+		close(pp.stopChannel)
+	})
+}
+
 // StopWait отправляет команду Stop всем работающим воркерам,
 // дожидается окончания их работы и останавливает работу пула.
 //
 // Обратите внимание! Метод возвращает return после остановки пула.
 func (pp *producerPool) StopWait() {
-	if !pp.isStarted {
-		log.Panic("pull is already stopped")
-	}
-	close(pp.stopChannel)
+	pp.stop()
 	<-pp.doneChannel
-
-	pp.isStarted = false
 }

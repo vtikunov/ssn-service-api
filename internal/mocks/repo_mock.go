@@ -65,29 +65,29 @@ func (mr *MockEventRepoMockRecorder) Lock(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // Remove mocks base method.
-func (m *MockEventRepo) Remove(arg0 context.Context, arg1 []uint64) error {
+func (m *MockEventRepo) Remove(arg0 []uint64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Remove", arg0, arg1)
+	ret := m.ctrl.Call(m, "Remove", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Remove indicates an expected call of Remove.
-func (mr *MockEventRepoMockRecorder) Remove(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockEventRepoMockRecorder) Remove(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockEventRepo)(nil).Remove), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockEventRepo)(nil).Remove), arg0)
 }
 
 // Unlock mocks base method.
-func (m *MockEventRepo) Unlock(arg0 context.Context, arg1 []uint64) error {
+func (m *MockEventRepo) Unlock(arg0 []uint64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Unlock", arg0, arg1)
+	ret := m.ctrl.Call(m, "Unlock", arg0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Unlock indicates an expected call of Unlock.
-func (mr *MockEventRepoMockRecorder) Unlock(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockEventRepoMockRecorder) Unlock(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unlock", reflect.TypeOf((*MockEventRepo)(nil).Unlock), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unlock", reflect.TypeOf((*MockEventRepo)(nil).Unlock), arg0)
 }

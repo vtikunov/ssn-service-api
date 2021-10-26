@@ -3,7 +3,6 @@ package producerpool_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"sync/atomic"
@@ -19,104 +18,195 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAllEventsComplete(t *testing.T) {
-	t.Parallel()
+type initData struct {
+	numEvents       uint64
+	maxProducers    uint64
+	maxWorkers      uint64
+	isEmitSendError bool
+}
+
+func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	log.SetOutput(ioutil.Discard)
 
-	tests := []struct {
-		numEvents       uint64
-		maxProducers    uint64
-		maxWorkers      uint64
-		isEmitSendError bool
-	}{
-		{
-			numEvents:    100,
-			maxProducers: 1,
-			maxWorkers:   1,
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	ctx := context.Background()
+	repo := mocks.NewMockEventRepo(ctrl)
+	sender := mocks.NewMockEventSender(ctrl)
+
+	var unlockCount int64
+	repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
+		func(eventIDs []uint64) error {
+			atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
+
+			return nil
 		},
-		{
-			numEvents:    1000,
+	).AnyTimes()
+
+	var removeCount int64
+	repo.EXPECT().Remove(gomock.Any()).DoAndReturn(
+		func(eventIDs []uint64) error {
+			atomic.AddInt64(&removeCount, int64(len(eventIDs)))
+
+			return nil
+		},
+	).AnyTimes()
+
+	var sendCount int64
+	sender.EXPECT().Send(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
+			if d.isEmitSendError {
+				if serviceEvent.ID%2 == 0 {
+					return errors.New("i can't send")
+				}
+			}
+			atomic.AddInt64(&sendCount, 1)
+
+			return nil
+		},
+	).AnyTimes()
+
+	eventsChannel := make(chan subscription.ServiceEvent)
+
+	producerPool := producerpool.NewProducerPool(d.maxProducers, producer.NewProducerFactory(eventsChannel, sender, repo, d.maxWorkers), time.Second)
+	producerPool.Start(ctx)
+
+	for i := uint64(1); i <= d.numEvents; i++ {
+		eventsChannel <- subscription.ServiceEvent{ID: i}
+	}
+
+	producerPool.StopWait()
+
+	assert.LessOrEqual(t, sendCount, int64(d.numEvents))
+	assert.Equal(t, int64(d.numEvents), unlockCount+removeCount)
+	assert.Equal(t, removeCount, sendCount)
+}
+
+func TestAllEventsCompleteWhenStoppingByFunc100Events10Producers2Workers(t *testing.T) {
+	SuiteAllEventsCompleteWhenStoppingByFunc(
+		t,
+		initData{
+			numEvents:    100,
 			maxProducers: 10,
 			maxWorkers:   2,
 		},
-		{
-			numEvents:    10000,
+	)
+}
+
+func TestAllEventsCompleteWhenStoppingByFunc1000Events50Producers4Workers(t *testing.T) {
+	SuiteAllEventsCompleteWhenStoppingByFunc(
+		t,
+		initData{
+			numEvents:    1000,
 			maxProducers: 50,
-			maxWorkers:   10,
+			maxWorkers:   4,
 		},
-		{
-			numEvents:       100,
-			maxProducers:    5,
-			maxWorkers:      2,
+	)
+}
+
+func TestAllEventsCompleteWhenStoppingByFunc2000Events20Producers3WorkersAndSendError(t *testing.T) {
+	SuiteAllEventsCompleteWhenStoppingByFunc(
+		t,
+		initData{
+			numEvents:       2000,
+			maxProducers:    20,
+			maxWorkers:      3,
 			isEmitSendError: true,
 		},
-	}
+	)
+}
 
-	for _, tt := range tests {
-		t.Run(
-			fmt.Sprintf(
-				"Send %v events with %v producers and %v workers. Is emit send errors: %v",
-				tt.numEvents,
-				tt.maxProducers,
-				tt.maxWorkers,
-				tt.isEmitSendError,
-			),
-			func(t *testing.T) {
-				t.Parallel()
+func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
+	log.SetOutput(ioutil.Discard)
 
-				ctrl := gomock.NewController(t)
-				ctx := context.Background()
-				repo := mocks.NewMockEventRepo(ctrl)
-				sender := mocks.NewMockEventSender(ctrl)
+	t.Parallel()
 
-				var unlockCount int64
-				repo.EXPECT().Unlock(gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, eventIDs []uint64) error {
-						atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
+	ctrl := gomock.NewController(t)
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	repo := mocks.NewMockEventRepo(ctrl)
+	sender := mocks.NewMockEventSender(ctrl)
 
-						return nil
-					},
-				).AnyTimes()
+	var unlockCount int64
+	repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
+		func(eventIDs []uint64) error {
+			atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
 
-				var removeCount int64
-				repo.EXPECT().Remove(gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, eventIDs []uint64) error {
-						atomic.AddInt64(&removeCount, int64(len(eventIDs)))
+			return nil
+		},
+	).AnyTimes()
 
-						return nil
-					},
-				).AnyTimes()
+	var removeCount int64
+	repo.EXPECT().Remove(gomock.Any()).DoAndReturn(
+		func(eventIDs []uint64) error {
+			atomic.AddInt64(&removeCount, int64(len(eventIDs)))
 
-				var sendCount int64
-				sender.EXPECT().Send(gomock.Any(), gomock.Any()).DoAndReturn(
-					func(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
-						if tt.isEmitSendError {
-							count := atomic.LoadInt64(&sendCount)
-							if count%2 == 0 {
-								return errors.New("i can't send")
-							}
-						}
-						atomic.AddInt64(&sendCount, 1)
+			return nil
+		},
+	).AnyTimes()
 
-						return nil
-					},
-				).AnyTimes()
-
-				eventsChannel := make(chan subscription.ServiceEvent)
-
-				producerPool := producerpool.NewProducerPool(0, producer.NewProducerFactory(eventsChannel, sender, repo, 0), time.Second)
-				producerPool.Start(ctx)
-
-				for i := uint64(0); i < tt.numEvents; i++ {
-					eventsChannel <- subscription.ServiceEvent{ID: i}
+	var sendCount int64
+	sender.EXPECT().Send(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
+			if d.isEmitSendError {
+				if serviceEvent.ID%2 == 0 {
+					return errors.New("i can't send")
 				}
+			}
+			atomic.AddInt64(&sendCount, 1)
 
-				producerPool.StopWait()
+			return nil
+		},
+	).AnyTimes()
 
-				assert.LessOrEqual(t, sendCount, int64(tt.numEvents))
-				assert.Equal(t, int64(tt.numEvents), unlockCount+removeCount)
-				assert.Equal(t, removeCount, sendCount)
-			},
-		)
+	eventsChannel := make(chan subscription.ServiceEvent)
+
+	producerPool := producerpool.NewProducerPool(d.maxProducers, producer.NewProducerFactory(eventsChannel, sender, repo, d.maxWorkers), time.Second)
+	doneChannel := producerPool.Start(ctx)
+
+	for i := uint64(1); i <= d.numEvents; i++ {
+		eventsChannel <- subscription.ServiceEvent{ID: i}
 	}
+
+	cancelCtx()
+
+	<-doneChannel
+
+	assert.LessOrEqual(t, sendCount, int64(d.numEvents))
+	assert.Equal(t, int64(d.numEvents), unlockCount+removeCount)
+	assert.Equal(t, removeCount, sendCount)
+}
+
+func TestAllEventsCompleteWhenStoppingByContext100Events10Producers2Workers(t *testing.T) {
+	SuiteAllEventsCompleteWhenStoppingByContext(
+		t,
+		initData{
+			numEvents:    100,
+			maxProducers: 10,
+			maxWorkers:   2,
+		},
+	)
+}
+
+func TestAllEventsCompleteWhenStoppingByContext1000Events50Producers4Workers(t *testing.T) {
+	SuiteAllEventsCompleteWhenStoppingByContext(
+		t,
+		initData{
+			numEvents:    1000,
+			maxProducers: 50,
+			maxWorkers:   4,
+		},
+	)
+}
+
+func TestAllEventsCompleteWhenStoppingByContext2000Events20Producers3WorkersAndSendError(t *testing.T) {
+	SuiteAllEventsCompleteWhenStoppingByContext(
+		t,
+		initData{
+			numEvents:       2000,
+			maxProducers:    20,
+			maxWorkers:      3,
+			isEmitSendError: true,
+		},
+	)
 }

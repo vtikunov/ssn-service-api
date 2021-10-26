@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
@@ -24,7 +25,8 @@ type consumer struct {
 	eventRepo     eventRepoLocker
 	doneChannel   chan interface{}
 	stopChannel   chan interface{}
-	isStarted     bool
+	onceStart     *sync.Once
+	onceStop      *sync.Once
 }
 
 // NewConsumer создает нового воркера-консьюмера.
@@ -45,11 +47,17 @@ func NewConsumer(
 	eventRepo eventRepoLocker,
 ) *consumer {
 
+	if batchSize == 0 {
+		log.Panicln("batchSize must be greater than 0")
+	}
+
 	return &consumer{
 		batchTime:     batchTime,
 		batchSize:     batchSize,
 		eventsChannel: eventsChannel,
 		eventRepo:     eventRepo,
+		onceStart:     &sync.Once{},
+		onceStop:      &sync.Once{},
 	}
 }
 
@@ -57,38 +65,44 @@ func NewConsumer(
 //
 // Возвращает канал для чтения doneChannel, который закрывается консьюмером при его остановке.
 func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
-	if c.isStarted {
-		log.Panic("consumer is already started")
-	}
-	c.isStarted = true
-	c.doneChannel = make(chan interface{})
-	c.stopChannel = make(chan interface{})
+	c.onceStart.Do(func() {
+		c.doneChannel = make(chan interface{})
+		c.stopChannel = make(chan interface{})
 
-	go func() {
-		defer close(c.doneChannel)
-		timeout := time.NewTimer(c.batchTime)
+		go func() {
+			defer close(c.doneChannel)
+			timeout := time.NewTimer(c.batchTime)
 
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-c.stopChannel:
-				return
-			case <-timeout.C:
-				events, err := c.eventRepo.Lock(ctx, c.batchSize)
-				if err != nil {
-					log.Printf("consumer: failed to lock events - %v", err)
+			for {
+				select {
+				case <-ctx.Done():
+					c.stop()
 
-					continue
-				}
-				for _, event := range events {
-					c.eventsChannel <- event
+					return
+				case <-c.stopChannel:
+					return
+				case <-timeout.C:
+					events, err := c.eventRepo.Lock(ctx, c.batchSize)
+					if err != nil {
+						log.Printf("consumer: failed to lock events - %v", err)
+
+						continue
+					}
+					for _, event := range events {
+						c.eventsChannel <- event
+					}
 				}
 			}
-		}
-	}()
+		}()
+	})
 
 	return c.doneChannel
+}
+
+func (c *consumer) stop() {
+	c.onceStop.Do(func() {
+		close(c.stopChannel)
+	})
 }
 
 // StopWait отправляет команду Stop консьюмеру,
@@ -96,13 +110,8 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 //
 // Обратите внимание! Метод возвращает return после остановки консьюмера.
 func (c *consumer) StopWait() {
-	if !c.isStarted {
-		log.Panic("consumer is already stopped")
-	}
-	close(c.stopChannel)
+	c.stop()
 	<-c.doneChannel
-
-	c.isStarted = false
 }
 
 type consumerFactory struct {
