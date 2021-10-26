@@ -106,6 +106,7 @@ func TestAllEventsComplete(t *testing.T) {
 							atomic.AddInt64(&sendCount, 1)
 						case <-doneChannelRoutine:
 							close(exitChannelRoutine)
+
 							return
 						}
 					}
