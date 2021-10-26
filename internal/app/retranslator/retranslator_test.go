@@ -66,7 +66,6 @@ func TestAllEventsComplete(t *testing.T) {
 				tt.isEmitSendError,
 			),
 			func(t *testing.T) {
-				t.Parallel()
 
 				ctrl := gomock.NewController(t)
 				repo := mocks.NewMockEventRepo(ctrl)
