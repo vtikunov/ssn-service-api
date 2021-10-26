@@ -63,7 +63,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		time.Millisecond,
 	)
 
-	consumerPool.Start(ctx)
+	doneChannel := consumerPool.Start(ctx)
 
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
@@ -81,6 +81,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	time.Sleep(time.Millisecond * 500)
 
 	consumerPool.StopWait()
+
+	<-doneChannel
 
 	close(doneChannelRoutine)
 
