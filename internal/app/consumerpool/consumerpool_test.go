@@ -63,8 +63,6 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		time.Millisecond,
 	)
 
-	consumerPool.Start(ctx)
-
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
 	exitChannelRoutine := make(chan interface{})
@@ -80,6 +78,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 			}
 		}
 	}()
+
+	consumerPool.Start(ctx)
 
 	time.Sleep(time.Millisecond * 500)
 
@@ -163,12 +163,6 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 		time.Millisecond,
 	)
 
-	doneChannel := consumerPool.Start(ctx)
-
-	time.Sleep(time.Millisecond * 500)
-
-	cancelCtx()
-
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
 	exitChannelRoutine := make(chan interface{})
@@ -184,6 +178,12 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 			}
 		}
 	}()
+
+	doneChannel := consumerPool.Start(ctx)
+
+	time.Sleep(time.Millisecond * 500)
+
+	cancelCtx()
 
 	<-doneChannel
 
