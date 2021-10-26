@@ -60,7 +60,6 @@ func TestAllEventsComplete(t *testing.T) {
 				tt.isEmitLockError,
 			),
 			func(t *testing.T) {
-
 				ctrl := gomock.NewController(t)
 				repo := mocks.NewMockEventRepo(ctrl)
 
@@ -99,12 +98,14 @@ func TestAllEventsComplete(t *testing.T) {
 
 				var sendCount int64
 				doneChannelRoutine := make(chan interface{})
+				exitChannelRoutine := make(chan interface{})
 				go func() {
 					for {
 						select {
 						case <-eventsChannel:
 							atomic.AddInt64(&sendCount, 1)
 						case <-doneChannelRoutine:
+							close(exitChannelRoutine)
 							return
 						}
 					}
@@ -115,6 +116,8 @@ func TestAllEventsComplete(t *testing.T) {
 				consumerPool.StopWait()
 
 				close(doneChannelRoutine)
+
+				<-exitChannelRoutine
 
 				assert.Greater(t, lockCount, int64(0))
 				assert.Equal(t, lockCount, sendCount)

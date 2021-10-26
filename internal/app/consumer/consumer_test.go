@@ -53,7 +53,6 @@ func TestAllEventsComplete(t *testing.T) {
 				tt.isEmitLockError,
 			),
 			func(t *testing.T) {
-
 				ctrl := gomock.NewController(t)
 				repo := mocks.NewMockEventRepo(ctrl)
 
