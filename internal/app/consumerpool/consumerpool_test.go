@@ -104,7 +104,7 @@ func TestAllEventsCompleteWhenStoppingByFunc100Consumers500EventInBatch(t *testi
 		t,
 		initData{
 			maxConsumers: 100,
-			batchSize:    500,
+			batchSize:    20,
 		},
 	)
 }
@@ -114,7 +114,7 @@ func TestAllEventsCompleteWhenStoppingByFunc100Consumers500EventInBatchWithLockE
 		t,
 		initData{
 			maxConsumers:    100,
-			batchSize:       500,
+			batchSize:       20,
 			isEmitLockError: true,
 		},
 	)
@@ -205,7 +205,7 @@ func TestAllEventsCompleteWhenStoppingByContext100Consumers500EventInBatch(t *te
 		t,
 		initData{
 			maxConsumers: 100,
-			batchSize:    500,
+			batchSize:    20,
 		},
 	)
 }
@@ -215,7 +215,7 @@ func TestAllEventsCompleteWhenStoppingByContext100Consumers500EventInBatchWithLo
 		t,
 		initData{
 			maxConsumers:    100,
-			batchSize:       500,
+			batchSize:       20,
 			isEmitLockError: true,
 		},
 	)
