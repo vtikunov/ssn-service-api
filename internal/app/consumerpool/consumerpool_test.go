@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -63,8 +64,11 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
-	for i := uint64(0); i < d.maxConsumers*d.batchSize*2; i++ {
+	wg := &sync.WaitGroup{}
+	for i := uint64(0); i < d.maxConsumers; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			for {
 				select {
 				case <-eventsChannel:
@@ -83,6 +87,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	consumerPool.StopWait()
 
 	close(doneChannelRoutine)
+
+	wg.Wait()
 
 	assert.Equal(t, lockCount, sendCount)
 }
@@ -158,8 +164,11 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
-	for i := uint64(0); i < d.maxConsumers*d.batchSize*2; i++ {
+	wg := &sync.WaitGroup{}
+	for i := uint64(0); i < d.maxConsumers; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			for {
 				select {
 				case <-eventsChannel:
@@ -179,9 +188,9 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	<-doneChannel
 
-	time.Sleep(time.Millisecond * 500)
-
 	close(doneChannelRoutine)
+
+	wg.Wait()
 
 	assert.Equal(t, lockCount, sendCount)
 }
@@ -200,7 +209,7 @@ func TestAllEventsCompleteWhenStoppingByContext100Consumers500EventInBatch(t *te
 	SuiteAllEventsCompleteWhenStoppingByContext(
 		t,
 		initData{
-			maxConsumers: 100,
+			maxConsumers: 50,
 			batchSize:    20,
 		},
 	)
@@ -210,7 +219,7 @@ func TestAllEventsCompleteWhenStoppingByContext100Consumers500EventInBatchWithLo
 	SuiteAllEventsCompleteWhenStoppingByContext(
 		t,
 		initData{
-			maxConsumers:    100,
+			maxConsumers:    50,
 			batchSize:       20,
 			isEmitLockError: true,
 		},
