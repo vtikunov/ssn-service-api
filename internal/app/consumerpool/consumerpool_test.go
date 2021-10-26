@@ -65,19 +65,18 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
-	exitChannelRoutine := make(chan interface{})
-	go func() {
-		for {
-			select {
-			case <-eventsChannel:
-				atomic.AddInt64(&sendCount, 1)
-			case <-doneChannelRoutine:
-				close(exitChannelRoutine)
-
-				return
+	for i := uint64(0); i < d.maxConsumers*d.batchSize*2; i++ {
+		go func() {
+			for {
+				select {
+				case <-eventsChannel:
+					atomic.AddInt64(&sendCount, 1)
+				case <-doneChannelRoutine:
+					return
+				}
 			}
-		}
-	}()
+		}()
+	}
 
 	consumerPool.Start(ctx)
 
@@ -86,8 +85,6 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	consumerPool.StopWait()
 
 	close(doneChannelRoutine)
-
-	<-exitChannelRoutine
 
 	assert.Equal(t, lockCount, sendCount)
 }
@@ -165,19 +162,18 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
-	exitChannelRoutine := make(chan interface{})
-	go func() {
-		for {
-			select {
-			case <-eventsChannel:
-				atomic.AddInt64(&sendCount, 1)
-			case <-doneChannelRoutine:
-				close(exitChannelRoutine)
-
-				return
+	for i := uint64(0); i < d.maxConsumers*d.batchSize*2; i++ {
+		go func() {
+			for {
+				select {
+				case <-eventsChannel:
+					atomic.AddInt64(&sendCount, 1)
+				case <-doneChannelRoutine:
+					return
+				}
 			}
-		}
-	}()
+		}()
+	}
 
 	doneChannel := consumerPool.Start(ctx)
 
@@ -187,9 +183,9 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	<-doneChannel
 
-	close(doneChannelRoutine)
+	time.Sleep(time.Millisecond * 500)
 
-	<-exitChannelRoutine
+	close(doneChannelRoutine)
 
 	assert.Equal(t, lockCount, sendCount)
 }
