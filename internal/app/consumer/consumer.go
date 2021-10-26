@@ -36,7 +36,7 @@ type consumer struct {
 //
 // eventsChannel: канал для записи событий консьюмером.
 //
-// eventRepo: ссылка на экземпляр репозитория событий, из которого консьюмер
+// eventRepo: указатель на экземпляр репозитория событий, из которого консьюмер
 // получает и блокирует события.
 func NewConsumer(
 	batchTime time.Duration,
@@ -121,7 +121,7 @@ type consumerFactory struct {
 //
 // eventsChannel: канал для записи событий консьюмером.
 //
-// eventRepo: ссылка на экземпляр репозитория событий, из которого консьюмер
+// eventRepo: указатель на экземпляр репозитория событий, из которого консьюмер
 // получает и блокирует события.
 func NewConsumerFactory(
 	batchTime time.Duration,
