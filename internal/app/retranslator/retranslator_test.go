@@ -149,8 +149,6 @@ func TestAllEventsComplete(t *testing.T) {
 
 				retranslator.StopWait()
 
-				assert.Greater(t, lockCount, int64(0))
-
 				if !tt.isEmitSendError {
 					assert.LessOrEqual(t, sendCount, lockCount)
 					assert.Equal(t, sendErrorCount, unlockCount)
