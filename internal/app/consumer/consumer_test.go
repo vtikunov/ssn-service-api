@@ -109,7 +109,6 @@ func TestAllEventsComplete(t *testing.T) {
 
 				<-doneChannelRoutine
 
-				assert.Greater(t, lockCount, int64(0))
 				assert.Equal(t, lockCount, sendCount)
 			},
 		)
