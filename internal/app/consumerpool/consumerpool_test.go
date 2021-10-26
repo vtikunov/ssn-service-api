@@ -63,16 +63,19 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		time.Millisecond,
 	)
 
-	doneChannel := consumerPool.Start(ctx)
+	consumerPool.Start(ctx)
 
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
+	exitChannelRoutine := make(chan interface{})
 	go func() {
 		for {
 			select {
 			case <-eventsChannel:
 				atomic.AddInt64(&sendCount, 1)
 			case <-doneChannelRoutine:
+				close(exitChannelRoutine)
+
 				return
 			}
 		}
@@ -82,9 +85,9 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	consumerPool.StopWait()
 
-	<-doneChannel
-
 	close(doneChannelRoutine)
+
+	<-exitChannelRoutine
 
 	assert.Equal(t, lockCount, sendCount)
 }
@@ -168,12 +171,15 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	var sendCount int64
 	doneChannelRoutine := make(chan interface{})
+	exitChannelRoutine := make(chan interface{})
 	go func() {
 		for {
 			select {
 			case <-eventsChannel:
 				atomic.AddInt64(&sendCount, 1)
 			case <-doneChannelRoutine:
+				close(exitChannelRoutine)
+
 				return
 			}
 		}
@@ -182,6 +188,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	<-doneChannel
 
 	close(doneChannelRoutine)
+
+	<-exitChannelRoutine
 
 	assert.Equal(t, lockCount, sendCount)
 }
