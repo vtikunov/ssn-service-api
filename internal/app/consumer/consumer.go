@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -8,12 +9,12 @@ import (
 )
 
 type Consumer interface {
-	Start() (doneChannel <-chan interface{})
+	Start(ctx context.Context) (doneChannel <-chan interface{})
 	StopWait()
 }
 
 type eventRepoLocker interface {
-	Lock(n uint64) ([]subscription.ServiceEvent, error)
+	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
 }
 
 type consumer struct {
@@ -55,7 +56,7 @@ func NewConsumer(
 // Start запускает работу консьюмера.
 //
 // Возвращает канал для чтения doneChannel, который закрывается консьюмером при его остановке.
-func (c *consumer) Start() (doneChannel <-chan interface{}) {
+func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 	if c.isStarted {
 		log.Panic("consumer is already started")
 	}
@@ -69,10 +70,12 @@ func (c *consumer) Start() (doneChannel <-chan interface{}) {
 
 		for {
 			select {
+			case <-ctx.Done():
+				return
 			case <-c.stopChannel:
 				return
 			case <-timeout.C:
-				events, err := c.eventRepo.Lock(c.batchSize)
+				events, err := c.eventRepo.Lock(ctx, c.batchSize)
 				if err != nil {
 					log.Printf("consumer: failed to lock events - %v", err)
 

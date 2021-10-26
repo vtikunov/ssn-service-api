@@ -1,6 +1,7 @@
 package retranslator
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -12,24 +13,24 @@ import (
 )
 
 type consumerPool interface {
-	Start()
+	Start(ctx context.Context)
 	StopWait()
 }
 
 type producerPool interface {
-	Start()
+	Start(ctx context.Context)
 	StopWait()
 }
 
 type eventRepo interface {
-	Lock(n uint64) ([]subscription.ServiceEvent, error)
-	Unlock(eventIDs []uint64) error
+	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
+	Unlock(ctx context.Context, eventIDs []uint64) error
 
-	Remove(eventIDs []uint64) error
+	Remove(ctx context.Context, eventIDs []uint64) error
 }
 
 type eventSender interface {
-	Send(serviceEvent *subscription.ServiceEvent) error
+	Send(ctx context.Context, serviceEvent *subscription.ServiceEvent) error
 }
 
 // Configuration - структура для передачи настроек ретранслятору.
@@ -105,13 +106,13 @@ func NewRetranslator(cfg *Configuration) *retranslator {
 }
 
 // Start запускает работу ретранслятора.
-func (r *retranslator) Start() {
+func (r *retranslator) Start(ctx context.Context) {
 	if r.isStarted {
 		log.Panic("retranslator is already started")
 	}
 	r.isStarted = true
-	r.producerPool.Start()
-	r.consumerPool.Start()
+	r.producerPool.Start(ctx)
+	r.consumerPool.Start(ctx)
 }
 
 // StopWait отправляет команду Stop пулам консьюмеров и продьюсеров,

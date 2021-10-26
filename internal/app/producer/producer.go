@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -10,17 +11,17 @@ import (
 
 // Producer - общий интерфейс воркеров-продьюсеров для совместимости между пакетами.
 type Producer interface {
-	Start() (doneChannel <-chan interface{})
+	Start(ctx context.Context) (doneChannel <-chan interface{})
 	StopWait()
 }
 
 type eventSender interface {
-	Send(serviceEvent *subscription.ServiceEvent) error
+	Send(ctx context.Context, serviceEvent *subscription.ServiceEvent) error
 }
 
 type eventRepoUnlockRemover interface {
-	Unlock(eventIDs []uint64) error
-	Remove(eventIDs []uint64) error
+	Unlock(ctx context.Context, eventIDs []uint64) error
+	Remove(ctx context.Context, eventIDs []uint64) error
 }
 
 type producer struct {
@@ -70,7 +71,7 @@ func NewProducer(
 // Start запускает работу продьюсера.
 //
 // Возвращает канал для чтения doneChannel, который закрывается продьюсером при его остановке.
-func (p *producer) Start() (doneChannel <-chan interface{}) {
+func (p *producer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 	if p.isStarted {
 		log.Panic("producer is already started")
 	}
@@ -80,10 +81,10 @@ func (p *producer) Start() (doneChannel <-chan interface{}) {
 	p.workerPool = workerpool.New(p.maxWorkers)
 
 	sendEventAndUnlockOrRemove := func(event *subscription.ServiceEvent) {
-		if err := p.sender.Send(event); err != nil {
+		if err := p.sender.Send(ctx, event); err != nil {
 			log.Printf("producer: failed to send event with ID %v - %v", event.ID, err)
 			p.workerPool.Submit(func() {
-				if err := p.eventRepo.Unlock([]uint64{event.ID}); err != nil {
+				if err := p.eventRepo.Unlock(ctx, []uint64{event.ID}); err != nil {
 					log.Printf("producer: failed to unlock event with ID %v after fail send - %v", event.ID, err)
 				}
 			})
@@ -92,7 +93,7 @@ func (p *producer) Start() (doneChannel <-chan interface{}) {
 		}
 
 		p.workerPool.Submit(func() {
-			if err := p.eventRepo.Remove([]uint64{event.ID}); err != nil {
+			if err := p.eventRepo.Remove(ctx, []uint64{event.ID}); err != nil {
 				log.Printf("producer: failed to remove event with ID %v after send - %v", event.ID, err)
 			}
 		})
@@ -107,6 +108,10 @@ func (p *producer) Start() (doneChannel <-chan interface{}) {
 			select {
 			case event := <-p.eventsChannel:
 				sendEventAndUnlockOrRemove(&event)
+			case <-ctx.Done():
+				if len(p.eventsChannel) == 0 {
+					return
+				}
 			case <-p.stopChannel:
 				if len(p.eventsChannel) == 0 {
 					return

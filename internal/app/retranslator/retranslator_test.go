@@ -1,6 +1,7 @@
 package retranslator_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -66,13 +67,16 @@ func TestAllEventsComplete(t *testing.T) {
 				tt.isEmitSendError,
 			),
 			func(t *testing.T) {
+				t.Parallel()
+
 				ctrl := gomock.NewController(t)
+				ctx := context.Background()
 				repo := mocks.NewMockEventRepo(ctrl)
 				sender := mocks.NewMockEventSender(ctrl)
 
 				var lockCount int64
-				repo.EXPECT().Lock(gomock.Any()).DoAndReturn(
-					func(n uint64) ([]subscription.ServiceEvent, error) {
+				repo.EXPECT().Lock(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 						start := uint64(atomic.LoadInt64(&lockCount)) + 1
 						result := make([]subscription.ServiceEvent, n)
 
@@ -87,8 +91,8 @@ func TestAllEventsComplete(t *testing.T) {
 				).AnyTimes()
 
 				var unlockCount int64
-				repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
-					func(eventIDs []uint64) error {
+				repo.EXPECT().Unlock(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, eventIDs []uint64) error {
 						atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
 
 						return nil
@@ -96,8 +100,8 @@ func TestAllEventsComplete(t *testing.T) {
 				).AnyTimes()
 
 				var removeCount int64
-				repo.EXPECT().Remove(gomock.Any()).DoAndReturn(
-					func(eventIDs []uint64) error {
+				repo.EXPECT().Remove(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, eventIDs []uint64) error {
 						atomic.AddInt64(&removeCount, int64(len(eventIDs)))
 
 						return nil
@@ -106,8 +110,8 @@ func TestAllEventsComplete(t *testing.T) {
 
 				var sendCount int64
 				var sendErrorCount int64
-				sender.EXPECT().Send(gomock.Any()).DoAndReturn(
-					func(serviceEvent *subscription.ServiceEvent) error {
+				sender.EXPECT().Send(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
 						if tt.isEmitSendError {
 							count := atomic.LoadInt64(&sendCount)
 							if count%2 == 0 {
@@ -139,7 +143,7 @@ func TestAllEventsComplete(t *testing.T) {
 					},
 				)
 
-				retranslator.Start()
+				retranslator.Start(ctx)
 
 				time.Sleep(time.Millisecond * 500)
 

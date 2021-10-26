@@ -1,6 +1,8 @@
 package sender
 
 import (
+	"context"
+
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
@@ -8,5 +10,5 @@ import (
 //
 // Send: отправляет событие.
 type EventSender interface {
-	Send(serviceEvent *subscription.ServiceEvent) error
+	Send(ctx context.Context, serviceEvent *subscription.ServiceEvent) error
 }

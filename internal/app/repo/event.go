@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"context"
+
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
@@ -15,9 +17,9 @@ import (
 // Remove: удаляет из репозитория события с указанными eventIDs.
 //
 type EventRepo interface {
-	Lock(n uint64) ([]subscription.ServiceEvent, error)
-	Unlock(eventIDs []uint64) error
+	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
+	Unlock(ctx context.Context, eventIDs []uint64) error
 
-	Add(event []subscription.ServiceEvent) error
-	Remove(eventIDs []uint64) error
+	Add(ctx context.Context, event []subscription.ServiceEvent) error
+	Remove(ctx context.Context, eventIDs []uint64) error
 }

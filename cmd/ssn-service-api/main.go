@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 
 func main() {
 	sigs := make(chan os.Signal, 1)
+	ctx := context.Background()
 
 	retranslator := retranslatorpkg.NewRetranslator(
 		&retranslatorpkg.Configuration{
@@ -26,7 +28,7 @@ func main() {
 			ProducerMaxWorkers: 2,
 		},
 	)
-	retranslator.Start()
+	retranslator.Start(ctx)
 
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 

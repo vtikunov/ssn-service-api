@@ -1,6 +1,7 @@
 package consumerpool_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -60,13 +61,16 @@ func TestAllEventsComplete(t *testing.T) {
 				tt.isEmitLockError,
 			),
 			func(t *testing.T) {
+				t.Parallel()
+
 				ctrl := gomock.NewController(t)
+				ctx := context.Background()
 				repo := mocks.NewMockEventRepo(ctrl)
 
 				var lockCount int64
 				var lockVoidCount int64
-				repo.EXPECT().Lock(gomock.Any()).DoAndReturn(
-					func(n uint64) ([]subscription.ServiceEvent, error) {
+				repo.EXPECT().Lock(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 						defer atomic.AddInt64(&lockVoidCount, 1)
 
 						if tt.isEmitLockError && atomic.LoadInt64(&lockVoidCount)%2 > 0 {
@@ -94,7 +98,7 @@ func TestAllEventsComplete(t *testing.T) {
 					time.Millisecond,
 				)
 
-				consumerPool.Start()
+				consumerPool.Start(ctx)
 
 				var sendCount int64
 				doneChannelRoutine := make(chan interface{})

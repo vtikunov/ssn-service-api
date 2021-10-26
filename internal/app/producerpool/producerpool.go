@@ -1,6 +1,7 @@
 package producerpool
 
 import (
+	"context"
 	"log"
 	"sync/atomic"
 	"time"
@@ -50,7 +51,7 @@ func NewProducerPool(
 }
 
 // Start запускает работу пула.
-func (pp *producerPool) Start() {
+func (pp *producerPool) Start(ctx context.Context) {
 	if pp.isStarted {
 		log.Panic("pull is already started")
 	}
@@ -58,16 +59,20 @@ func (pp *producerPool) Start() {
 	pp.doneChannel = make(chan interface{})
 	pp.stopChannel = make(chan interface{})
 
-	go pp.dispatch()
+	go pp.dispatch(ctx)
 }
 
-func (pp *producerPool) dispatch() {
+func (pp *producerPool) dispatch(ctx context.Context) {
 	defer close(pp.doneChannel)
 
 	var producerCount int64
 
 	for {
 		select {
+		case <-ctx.Done():
+			if atomic.LoadInt64(&producerCount) == 0 {
+				return
+			}
 		case <-pp.stopChannel:
 			if atomic.LoadInt64(&producerCount) == 0 {
 				return
@@ -81,11 +86,13 @@ func (pp *producerPool) dispatch() {
 			go func() {
 				defer atomic.AddInt64(&producerCount, -1)
 				producer := pp.producerFactory.Create(pp.producerTimeout)
-				doneChannel := producer.Start()
+				doneChannel := producer.Start(ctx)
 				timeout := time.NewTimer(pp.producerTimeout)
 
 				select {
 				case <-doneChannel:
+				case <-ctx.Done():
+					producer.StopWait()
 				case <-pp.stopChannel:
 					producer.StopWait()
 				case <-timeout.C:

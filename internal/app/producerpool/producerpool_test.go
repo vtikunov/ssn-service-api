@@ -1,6 +1,7 @@
 package producerpool_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -61,13 +62,16 @@ func TestAllEventsComplete(t *testing.T) {
 				tt.isEmitSendError,
 			),
 			func(t *testing.T) {
+				t.Parallel()
+
 				ctrl := gomock.NewController(t)
+				ctx := context.Background()
 				repo := mocks.NewMockEventRepo(ctrl)
 				sender := mocks.NewMockEventSender(ctrl)
 
 				var unlockCount int64
-				repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
-					func(eventIDs []uint64) error {
+				repo.EXPECT().Unlock(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, eventIDs []uint64) error {
 						atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
 
 						return nil
@@ -75,8 +79,8 @@ func TestAllEventsComplete(t *testing.T) {
 				).AnyTimes()
 
 				var removeCount int64
-				repo.EXPECT().Remove(gomock.Any()).DoAndReturn(
-					func(eventIDs []uint64) error {
+				repo.EXPECT().Remove(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, eventIDs []uint64) error {
 						atomic.AddInt64(&removeCount, int64(len(eventIDs)))
 
 						return nil
@@ -84,8 +88,8 @@ func TestAllEventsComplete(t *testing.T) {
 				).AnyTimes()
 
 				var sendCount int64
-				sender.EXPECT().Send(gomock.Any()).DoAndReturn(
-					func(serviceEvent *subscription.ServiceEvent) error {
+				sender.EXPECT().Send(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
 						if tt.isEmitSendError {
 							count := atomic.LoadInt64(&sendCount)
 							if count%2 == 0 {
@@ -101,7 +105,7 @@ func TestAllEventsComplete(t *testing.T) {
 				eventsChannel := make(chan subscription.ServiceEvent)
 
 				producerPool := producerpool.NewProducerPool(0, producer.NewProducerFactory(eventsChannel, sender, repo, 0), time.Second)
-				producerPool.Start()
+				producerPool.Start(ctx)
 
 				for i := uint64(0); i < tt.numEvents; i++ {
 					eventsChannel <- subscription.ServiceEvent{ID: i}

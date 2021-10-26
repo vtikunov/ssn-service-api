@@ -1,6 +1,7 @@
 package consumerpool
 
 import (
+	"context"
 	"log"
 	"sync/atomic"
 	"time"
@@ -50,7 +51,7 @@ func NewConsumerPool(
 }
 
 // Start запускает работу пула.
-func (cp *consumerPool) Start() {
+func (cp *consumerPool) Start(ctx context.Context) {
 	if cp.isStarted {
 		log.Panic("pull is already started")
 	}
@@ -58,10 +59,10 @@ func (cp *consumerPool) Start() {
 	cp.doneChannel = make(chan interface{})
 	cp.stopChannel = make(chan interface{})
 
-	go cp.dispatch()
+	go cp.dispatch(ctx)
 }
 
-func (cp *consumerPool) dispatch() {
+func (cp *consumerPool) dispatch(ctx context.Context) {
 	defer close(cp.doneChannel)
 
 	var consumerCount int64
@@ -81,11 +82,13 @@ func (cp *consumerPool) dispatch() {
 			go func() {
 				defer atomic.AddInt64(&consumerCount, -1)
 				consumer := cp.consumerFactory.Create()
-				doneChannel := consumer.Start()
+				doneChannel := consumer.Start(ctx)
 				timeout := time.NewTimer(cp.consumerTimeout)
 
 				select {
 				case <-doneChannel:
+				case <-ctx.Done():
+					consumer.StopWait()
 				case <-cp.stopChannel:
 					consumer.StopWait()
 				case <-timeout.C:
