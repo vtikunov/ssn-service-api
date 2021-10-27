@@ -103,22 +103,22 @@ func TestAllEventsCompleteWhenStoppingByFunc10Consumers1EventInBatch(t *testing.
 	)
 }
 
-func TestAllEventsCompleteWhenStoppingByFunc100Consumers500EventInBatch(t *testing.T) {
+func TestAllEventsCompleteWhenStoppingByFunc20Consumers50EventInBatch(t *testing.T) {
 	SuiteAllEventsCompleteWhenStoppingByFunc(
 		t,
 		initData{
-			maxConsumers: 100,
-			batchSize:    20,
+			maxConsumers: 20,
+			batchSize:    50,
 		},
 	)
 }
 
-func TestAllEventsCompleteWhenStoppingByFunc100Consumers500EventInBatchWithLockError(t *testing.T) {
+func TestAllEventsCompleteWhenStoppingByFunc30Consumers50EventInBatchWithLockError(t *testing.T) {
 	SuiteAllEventsCompleteWhenStoppingByFunc(
 		t,
 		initData{
-			maxConsumers:    100,
-			batchSize:       20,
+			maxConsumers:    30,
+			batchSize:       50,
 			isEmitLockError: true,
 		},
 	)
@@ -205,22 +205,22 @@ func TestAllEventsCompleteWhenStoppingByContext10Consumers1EventInBatch(t *testi
 	)
 }
 
-func TestAllEventsCompleteWhenStoppingByContext100Consumers500EventInBatch(t *testing.T) {
+func TestAllEventsCompleteWhenStoppingByContext20Consumers50EventInBatch(t *testing.T) {
 	SuiteAllEventsCompleteWhenStoppingByContext(
 		t,
 		initData{
-			maxConsumers: 50,
-			batchSize:    20,
+			maxConsumers: 20,
+			batchSize:    50,
 		},
 	)
 }
 
-func TestAllEventsCompleteWhenStoppingByContext100Consumers500EventInBatchWithLockError(t *testing.T) {
+func TestAllEventsCompleteWhenStoppingByContext20Consumers50EventInBatchWithLockError(t *testing.T) {
 	SuiteAllEventsCompleteWhenStoppingByContext(
 		t,
 		initData{
-			maxConsumers:    50,
-			batchSize:       20,
+			maxConsumers:    20,
+			batchSize:       50,
 			isEmitLockError: true,
 		},
 	)

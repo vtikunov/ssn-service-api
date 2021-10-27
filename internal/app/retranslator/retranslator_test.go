@@ -151,12 +151,12 @@ func TestAllEventsCompleteWhenStoppingByFuncTwo(t *testing.T) {
 		initData{
 			eventChannelSize: 10,
 
-			maxConsumers:      50,
+			maxConsumers:      20,
 			consumerTimeout:   time.Millisecond,
 			consumerBatchTime: time.Microsecond,
 			consumerBatchSize: 10,
 
-			maxProducers:       50,
+			maxProducers:       20,
 			producerTimeout:    time.Millisecond,
 			producerMaxWorkers: 2,
 
@@ -286,12 +286,12 @@ func TestAllEventsCompleteWhenStoppingByContextTwo(t *testing.T) {
 		initData{
 			eventChannelSize: 10,
 
-			maxConsumers:      50,
+			maxConsumers:      20,
 			consumerTimeout:   time.Millisecond,
 			consumerBatchTime: time.Microsecond,
 			consumerBatchSize: 10,
 
-			maxProducers:       50,
+			maxProducers:       20,
 			producerTimeout:    time.Millisecond,
 			producerMaxWorkers: 2,
 
