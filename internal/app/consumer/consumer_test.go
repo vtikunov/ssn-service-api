@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/app/channellocator"
+
 	"github.com/golang/mock/gomock"
 	consumerpkg "github.com/ozonmp/ssn-service-api/internal/app/consumer"
 	"github.com/ozonmp/ssn-service-api/internal/mocks"
@@ -54,8 +56,9 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	).AnyTimes()
 
 	eventsChannel := make(chan []subscription.ServiceEvent)
+	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
-	consumer := consumerpkg.NewConsumer(time.Microsecond, d.batchSize, eventsChannel, repo)
+	consumer := consumerpkg.NewConsumer(time.Microsecond, d.batchSize, channelLocator, repo)
 
 	doneChannel := consumer.Start(ctx)
 
@@ -143,8 +146,9 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	).AnyTimes()
 
 	eventsChannel := make(chan []subscription.ServiceEvent)
+	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
-	consumer := consumerpkg.NewConsumer(time.Microsecond, d.batchSize, eventsChannel, repo)
+	consumer := consumerpkg.NewConsumer(time.Microsecond, d.batchSize, channelLocator, repo)
 
 	doneChannel := consumer.Start(ctx)
 

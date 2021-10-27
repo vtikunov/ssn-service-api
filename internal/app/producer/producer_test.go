@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/app/channellocator"
+
 	producerpkg "github.com/ozonmp/ssn-service-api/internal/app/producer"
 
 	"github.com/golang/mock/gomock"
@@ -68,8 +70,9 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	).AnyTimes()
 
 	eventsChannel := make(chan []subscription.ServiceEvent)
+	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
-	producer := producerpkg.NewProducer(time.Second, eventsChannel, sender, repo, d.maxWorkers)
+	producer := producerpkg.NewProducer(time.Second, channelLocator, sender, repo, d.maxWorkers)
 
 	producer.Start(ctx)
 
@@ -148,8 +151,9 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	).AnyTimes()
 
 	eventsChannel := make(chan []subscription.ServiceEvent)
+	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
-	producer := producerpkg.NewProducer(time.Second, eventsChannel, sender, repo, d.maxWorkers)
+	producer := producerpkg.NewProducer(time.Second, channelLocator, sender, repo, d.maxWorkers)
 
 	doneChannel := producer.Start(ctx)
 

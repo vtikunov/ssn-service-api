@@ -14,19 +14,25 @@ type Consumer interface {
 	StopWait()
 }
 
-type eventRepoLocker interface {
+type eventRepoLockUnlocker interface {
 	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
+	LockByServiceID(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error)
+	Unlock(eventIDs []uint64) error
+}
+
+type channelLocator interface {
+	GetMainEventsWriteChannel() chan<- []subscription.ServiceEvent
 }
 
 type consumer struct {
-	batchTime     time.Duration
-	batchSize     uint64
-	eventsChannel chan<- []subscription.ServiceEvent
-	eventRepo     eventRepoLocker
-	doneChannel   chan interface{}
-	stopChannel   chan interface{}
-	onceStart     *sync.Once
-	onceStop      *sync.Once
+	batchTime      time.Duration
+	batchSize      uint64
+	channelLocator channelLocator
+	eventRepo      eventRepoLockUnlocker
+	doneChannel    chan interface{}
+	stopChannel    chan interface{}
+	onceStart      *sync.Once
+	onceStop       *sync.Once
 }
 
 // NewConsumer создает нового воркера-консьюмера.
@@ -36,15 +42,15 @@ type consumer struct {
 // batchSize: определяет размер пакета событий, получаемый консьюмером из репозитория
 // за одно обращение.
 //
-// eventsChannel: канал для записи событий консьюмером.
+// channelLocator: локатор каналов.
 //
 // eventRepo: указатель на экземпляр репозитория событий, из которого консьюмер
 // получает и блокирует события.
 func NewConsumer(
 	batchTime time.Duration,
 	batchSize uint64,
-	eventsChannel chan<- []subscription.ServiceEvent,
-	eventRepo eventRepoLocker,
+	channelLocator channelLocator,
+	eventRepo eventRepoLockUnlocker,
 ) *consumer {
 
 	if batchSize == 0 {
@@ -52,12 +58,12 @@ func NewConsumer(
 	}
 
 	return &consumer{
-		batchTime:     batchTime,
-		batchSize:     batchSize,
-		eventsChannel: eventsChannel,
-		eventRepo:     eventRepo,
-		onceStart:     &sync.Once{},
-		onceStop:      &sync.Once{},
+		batchTime:      batchTime,
+		batchSize:      batchSize,
+		channelLocator: channelLocator,
+		eventRepo:      eventRepo,
+		onceStart:      &sync.Once{},
+		onceStop:       &sync.Once{},
 	}
 }
 
@@ -72,6 +78,7 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 		go func() {
 			defer close(c.doneChannel)
 			timeout := time.NewTimer(c.batchTime)
+			mainEventsChannel := c.channelLocator.GetMainEventsWriteChannel()
 
 			for {
 				select {
@@ -88,7 +95,7 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 
 						continue
 					}
-					c.eventsChannel <- events
+					mainEventsChannel <- events
 				}
 			}
 		}()
@@ -113,10 +120,10 @@ func (c *consumer) StopWait() {
 }
 
 type consumerFactory struct {
-	batchTime     time.Duration
-	batchSize     uint64
-	eventsChannel chan<- []subscription.ServiceEvent
-	eventRepo     eventRepoLocker
+	batchTime      time.Duration
+	batchSize      uint64
+	channelLocator channelLocator
+	eventRepo      eventRepoLockUnlocker
 }
 
 // NewConsumerFactory создает фабрику воркеров-консьюмеров.
@@ -126,26 +133,26 @@ type consumerFactory struct {
 // batchSize: определяет размер пакета событий, получаемый консьюмером из репозитория
 // за одно обращение.
 //
-// eventsChannel: канал для записи событий консьюмером.
+// channelLocator: локатор каналов.
 //
 // eventRepo: указатель на экземпляр репозитория событий, из которого консьюмер
 // получает и блокирует события.
 func NewConsumerFactory(
 	batchTime time.Duration,
 	batchSize uint64,
-	eventsChannel chan<- []subscription.ServiceEvent,
-	eventRepo eventRepoLocker,
+	channelLocator channelLocator,
+	eventRepo eventRepoLockUnlocker,
 ) *consumerFactory {
 
 	return &consumerFactory{
-		batchTime:     batchTime,
-		batchSize:     batchSize,
-		eventsChannel: eventsChannel,
-		eventRepo:     eventRepo,
+		batchTime:      batchTime,
+		batchSize:      batchSize,
+		channelLocator: channelLocator,
+		eventRepo:      eventRepo,
 	}
 }
 
 // Create создает воркера-консьюмера.
 func (cf *consumerFactory) Create() Consumer {
-	return NewConsumer(cf.batchTime, cf.batchSize, cf.eventsChannel, cf.eventRepo)
+	return NewConsumer(cf.batchTime, cf.batchSize, cf.channelLocator, cf.eventRepo)
 }

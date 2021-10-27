@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/app/channellocator"
+
 	"github.com/ozonmp/ssn-service-api/internal/app/producerpool"
 
 	"github.com/golang/mock/gomock"
@@ -68,8 +70,9 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	).AnyTimes()
 
 	eventsChannel := make(chan []subscription.ServiceEvent)
+	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
-	producerPool := producerpool.NewProducerPool(d.maxProducers, producer.NewProducerFactory(eventsChannel, sender, repo, d.maxWorkers), time.Second)
+	producerPool := producerpool.NewProducerPool(d.maxProducers, producer.NewProducerFactory(channelLocator, sender, repo, d.maxWorkers), time.Second)
 	producerPool.Start(ctx)
 
 	for i := uint64(1); i <= d.numEvents; i++ {
@@ -160,8 +163,9 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	).AnyTimes()
 
 	eventsChannel := make(chan []subscription.ServiceEvent)
+	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
-	producerPool := producerpool.NewProducerPool(d.maxProducers, producer.NewProducerFactory(eventsChannel, sender, repo, d.maxWorkers), time.Second)
+	producerPool := producerpool.NewProducerPool(d.maxProducers, producer.NewProducerFactory(channelLocator, sender, repo, d.maxWorkers), time.Second)
 	doneChannel := producerPool.Start(ctx)
 
 	for i := uint64(1); i <= d.numEvents; i++ {

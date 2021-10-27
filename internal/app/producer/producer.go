@@ -25,17 +25,21 @@ type eventRepoUnlockRemover interface {
 	Remove(eventIDs []uint64) error
 }
 
+type channelLocator interface {
+	GetMainEventsReadChannel() <-chan []subscription.ServiceEvent
+}
+
 type producer struct {
-	timeout       time.Duration
-	eventsChannel <-chan []subscription.ServiceEvent
-	sender        eventSender
-	eventRepo     eventRepoUnlockRemover
-	doneChannel   chan interface{}
-	stopChannel   chan interface{}
-	workerPool    *workerpool.WorkerPool
-	maxWorkers    int
-	onceStart     *sync.Once
-	onceStop      *sync.Once
+	timeout        time.Duration
+	channelLocator channelLocator
+	sender         eventSender
+	eventRepo      eventRepoUnlockRemover
+	doneChannel    chan interface{}
+	stopChannel    chan interface{}
+	workerPool     *workerpool.WorkerPool
+	maxWorkers     int
+	onceStart      *sync.Once
+	onceStop       *sync.Once
 }
 
 // NewProducer создает нового воркера-продьюсера.
@@ -43,7 +47,7 @@ type producer struct {
 // timeout: определяет максимальное время "пустого простоя"
 // экземпляра воркера-продьюсера, по истечении которого он будет остановлен.
 //
-// eventsChannel: канал для чтения событий продьюсером.
+// channelLocator: локатор каналов.
 //
 // sender: указатель на экземпляр сендера, куда продьюсер перенаправляет
 // события из канала eventsChannel.
@@ -55,7 +59,7 @@ type producer struct {
 // с репозиторием событий eventRepo, которые будут запущены конкуретно.
 func NewProducer(
 	timeout time.Duration,
-	eventsChannel <-chan []subscription.ServiceEvent,
+	channelLocator channelLocator,
 	sender eventSender,
 	eventRepo eventRepoUnlockRemover,
 	maxWorkers uint64,
@@ -66,13 +70,13 @@ func NewProducer(
 	}
 
 	return &producer{
-		timeout:       timeout,
-		eventsChannel: eventsChannel,
-		sender:        sender,
-		eventRepo:     eventRepo,
-		maxWorkers:    int(maxWorkers),
-		onceStart:     &sync.Once{},
-		onceStop:      &sync.Once{},
+		timeout:        timeout,
+		channelLocator: channelLocator,
+		sender:         sender,
+		eventRepo:      eventRepo,
+		maxWorkers:     int(maxWorkers),
+		onceStart:      &sync.Once{},
+		onceStop:       &sync.Once{},
 	}
 }
 
@@ -122,18 +126,19 @@ func (p *producer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 				close(p.doneChannel)
 			}()
 
+			mainEventsChannel := p.channelLocator.GetMainEventsReadChannel()
 			timeout := time.NewTimer(p.timeout)
 
 			for {
 				select {
-				case events := <-p.eventsChannel:
+				case events := <-mainEventsChannel:
 					p.sendEventsAndUnlockOrRemove(ctx, events)
 
 					continue
 				case <-ctx.Done():
 					p.stop()
 				case <-p.stopChannel:
-					if len(p.eventsChannel) == 0 {
+					if len(mainEventsChannel) == 0 {
 						return
 					}
 				case <-timeout.C:
@@ -162,15 +167,15 @@ func (p *producer) StopWait() {
 }
 
 type producerFactory struct {
-	eventsChannel <-chan []subscription.ServiceEvent
-	sender        eventSender
-	eventRepo     eventRepoUnlockRemover
-	maxWorkers    uint64
+	channelLocator channelLocator
+	sender         eventSender
+	eventRepo      eventRepoUnlockRemover
+	maxWorkers     uint64
 }
 
 // NewProducerFactory создает фабрику воркеров-продьюсеров.
 //
-// eventsChannel: канал для чтения событий продьюсером.
+// channelLocator: локатор каналов.
 //
 // sender: указатель на экземпляр сендера, куда продьюсер перенаправляет
 // события из канала eventsChannel.
@@ -181,17 +186,17 @@ type producerFactory struct {
 // maxWorkers: определяет максимальное количество вспомогательных воркеров работы
 // с репозиторием событий eventRepo, которые будут запущены конкуретно.
 func NewProducerFactory(
-	eventsChannel <-chan []subscription.ServiceEvent,
+	channelLocator channelLocator,
 	sender eventSender,
 	eventRepo eventRepoUnlockRemover,
 	maxWorkers uint64,
 ) *producerFactory {
 
 	return &producerFactory{
-		eventsChannel: eventsChannel,
-		sender:        sender,
-		eventRepo:     eventRepo,
-		maxWorkers:    maxWorkers,
+		channelLocator: channelLocator,
+		sender:         sender,
+		eventRepo:      eventRepo,
+		maxWorkers:     maxWorkers,
 	}
 }
 
@@ -200,5 +205,5 @@ func NewProducerFactory(
 // timeout: определяет максимальное время "пустого простоя" экземпляра воркера-продьюсера,
 // по истечении которого он будет остановлен.
 func (pf *producerFactory) Create(timeout time.Duration) Producer {
-	return NewProducer(timeout, pf.eventsChannel, pf.sender, pf.eventRepo, pf.maxWorkers)
+	return NewProducer(timeout, pf.channelLocator, pf.sender, pf.eventRepo, pf.maxWorkers)
 }

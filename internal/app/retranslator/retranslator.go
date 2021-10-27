@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/app/channellocator"
+
 	"github.com/ozonmp/ssn-service-api/internal/app/consumer"
 	"github.com/ozonmp/ssn-service-api/internal/app/consumerpool"
 	"github.com/ozonmp/ssn-service-api/internal/app/producer"
@@ -24,6 +26,7 @@ type producerPool interface {
 
 type eventRepo interface {
 	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
+	LockByServiceID(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error)
 	Unlock(eventIDs []uint64) error
 
 	Remove(eventIDs []uint64) error
@@ -87,16 +90,17 @@ type retranslator struct {
 // NewRetranslator создает новый ретранслятор.
 func NewRetranslator(cfg *Configuration) *retranslator {
 	eventsChannel := make(chan []subscription.ServiceEvent, cfg.EventChannelSize)
+	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
 	consumerPool := consumerpool.NewConsumerPool(
 		cfg.MaxConsumers,
-		consumer.NewConsumerFactory(cfg.ConsumerBatchTime, cfg.ConsumerBatchSize, eventsChannel, cfg.EventRepo),
+		consumer.NewConsumerFactory(cfg.ConsumerBatchTime, cfg.ConsumerBatchSize, channelLocator, cfg.EventRepo),
 		cfg.ConsumerTimeout,
 	)
 
 	producerPool := producerpool.NewProducerPool(
 		cfg.MaxProducers,
-		producer.NewProducerFactory(eventsChannel, cfg.EventSender, cfg.EventRepo, cfg.ProducerMaxWorkers),
+		producer.NewProducerFactory(channelLocator, cfg.EventSender, cfg.EventRepo, cfg.ProducerMaxWorkers),
 		cfg.ProducerTimeout,
 	)
 

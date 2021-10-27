@@ -64,6 +64,21 @@ func (mr *MockEventRepoMockRecorder) Lock(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lock", reflect.TypeOf((*MockEventRepo)(nil).Lock), arg0, arg1)
 }
 
+// LockByServiceID mocks base method.
+func (m *MockEventRepo) LockByServiceID(arg0 context.Context, arg1 uint64) ([]subscription.ServiceEvent, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LockByServiceID", arg0, arg1)
+	ret0, _ := ret[0].([]subscription.ServiceEvent)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LockByServiceID indicates an expected call of LockByServiceID.
+func (mr *MockEventRepoMockRecorder) LockByServiceID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockByServiceID", reflect.TypeOf((*MockEventRepo)(nil).LockByServiceID), arg0, arg1)
+}
+
 // Remove mocks base method.
 func (m *MockEventRepo) Remove(arg0 []uint64) error {
 	m.ctrl.T.Helper()
