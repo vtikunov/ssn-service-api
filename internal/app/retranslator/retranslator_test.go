@@ -35,8 +35,6 @@ type initData struct {
 func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	log.SetOutput(ioutil.Discard)
 
-	t.Parallel()
-
 	ctrl := gomock.NewController(t)
 	ctx := context.Background()
 	repo := mocks.NewMockEventRepo(ctrl)
@@ -169,8 +167,6 @@ func TestAllEventsCompleteWhenStoppingByFuncTwo(t *testing.T) {
 
 func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	log.SetOutput(ioutil.Discard)
-
-	t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	ctx, cancelCtx := context.WithCancel(context.Background())
