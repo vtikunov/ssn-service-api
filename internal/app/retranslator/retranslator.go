@@ -26,6 +26,7 @@ type producerPool interface {
 
 type eventRepo interface {
 	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
+	LockExceptLockedByServiceID(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
 	LockByServiceID(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error)
 	Unlock(eventIDs []uint64) error
 

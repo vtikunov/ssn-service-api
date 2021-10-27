@@ -10,7 +10,12 @@ import (
 //
 // Lock: блокирует и возвращает из репозитория n событий.
 //
+// LockExceptLockedByServiceID: блокирует и возвращает из репозитория n событий.
+// Метод учитывает блокировку по ID сервиса и блокирует только те события, ID сервисов которых
+// не имеют ни одного заблокированного события.
+//
 // LockByServiceID: блокирует и возвращает из репозитория события по ID сервиса.
+// Это отдельный вид блокировки - блокировка по ID события - не учитывается.
 // Реализация метода должна учитывать, что если в репозитарии есть уже заблокированные события
 // с переданным ID сервиса - блокировка незаблокированных невозможна. Также метод
 // обязан гарантировать, что возвращаемые значения отсортированы в порядке их возникновения.
@@ -23,6 +28,7 @@ import (
 //
 type EventRepo interface {
 	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
+	LockExceptLockedByServiceID(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
 	LockByServiceID(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error)
 	Unlock(eventIDs []uint64) error
 

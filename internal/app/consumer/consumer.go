@@ -15,13 +15,14 @@ type Consumer interface {
 }
 
 type eventRepoLockUnlocker interface {
-	Lock(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
+	LockExceptLockedByServiceID(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
 	LockByServiceID(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error)
 	Unlock(eventIDs []uint64) error
 }
 
 type channelLocator interface {
 	GetMainEventsWriteChannel() chan<- []subscription.ServiceEvent
+	GetEventsServiceIDWriteChannel(serviceID uint64) chan<- []subscription.ServiceEvent
 }
 
 type consumer struct {
@@ -78,7 +79,6 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 		go func() {
 			defer close(c.doneChannel)
 			timeout := time.NewTimer(c.batchTime)
-			mainEventsChannel := c.channelLocator.GetMainEventsWriteChannel()
 
 			for {
 				select {
@@ -89,13 +89,27 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 				case <-c.stopChannel:
 					return
 				case <-timeout.C:
-					events, err := c.eventRepo.Lock(ctx, c.batchSize)
+					events, err := c.eventRepo.LockExceptLockedByServiceID(ctx, c.batchSize)
 					if err != nil {
 						log.Printf("consumer: failed to lock events - %v", err)
 
 						continue
 					}
-					mainEventsChannel <- events
+
+					for _, event := range events {
+						eventsByServiceID, err := c.eventRepo.LockByServiceID(ctx, event.Service.ID)
+						if err != nil {
+							log.Printf("consumer: failed to lock events by service ID - %v", err)
+							if err := c.eventRepo.Unlock([]uint64{event.ID}); err != nil {
+								log.Printf("consumer: failed to unlock events after fail lock by service ID - %v", err)
+							}
+
+							continue
+						}
+
+						c.channelLocator.GetMainEventsWriteChannel() <- []subscription.ServiceEvent{event}
+						c.channelLocator.GetEventsServiceIDWriteChannel(event.Service.ID) <- eventsByServiceID
+					}
 				}
 			}
 		}()

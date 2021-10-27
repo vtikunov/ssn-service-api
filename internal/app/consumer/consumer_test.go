@@ -34,7 +34,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	var lockCount int64
 	var lockVoidCount int64
-	repo.EXPECT().Lock(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 			defer atomic.AddInt64(&lockVoidCount, 1)
 
@@ -46,12 +46,27 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 			result := make([]subscription.ServiceEvent, n)
 
 			for i := uint64(0); i < n; i++ {
-				result[i] = subscription.ServiceEvent{ID: start + i}
+				result[i] = subscription.ServiceEvent{ID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
-			atomic.AddInt64(&lockCount, int64(n))
-
 			return result, nil
+		},
+	).AnyTimes()
+
+	repo.EXPECT().LockByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
+			atomic.AddInt64(&lockCount, 1)
+
+			return []subscription.ServiceEvent{{ID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
+		},
+	).AnyTimes()
+
+	var unlockCount int64
+	repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
+		func(eventIDs []uint64) error {
+			atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
+
+			return nil
 		},
 	).AnyTimes()
 
@@ -69,7 +84,14 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		for {
 			select {
 			case events := <-eventsChannel:
-				atomic.AddInt64(&sendCount, int64(len(events)))
+				for _, event := range events {
+					endEventsChannel, err := channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
+					if err != nil {
+						continue
+					}
+					endEvents := <-endEventsChannel
+					atomic.AddInt64(&sendCount, int64(len(endEvents)))
+				}
 			case <-doneChannel:
 				return
 			}
@@ -124,7 +146,7 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	var lockCount int64
 	var lockVoidCount int64
-	repo.EXPECT().Lock(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 			defer atomic.AddInt64(&lockVoidCount, 1)
 
@@ -136,12 +158,27 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 			result := make([]subscription.ServiceEvent, n)
 
 			for i := uint64(0); i < n; i++ {
-				result[i] = subscription.ServiceEvent{ID: start + i}
+				result[i] = subscription.ServiceEvent{ID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
-			atomic.AddInt64(&lockCount, int64(n))
-
 			return result, nil
+		},
+	).AnyTimes()
+
+	repo.EXPECT().LockByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
+			atomic.AddInt64(&lockCount, 1)
+
+			return []subscription.ServiceEvent{{ID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
+		},
+	).AnyTimes()
+
+	var unlockCount int64
+	repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
+		func(eventIDs []uint64) error {
+			atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
+
+			return nil
 		},
 	).AnyTimes()
 
@@ -159,7 +196,14 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 		for {
 			select {
 			case events := <-eventsChannel:
-				atomic.AddInt64(&sendCount, int64(len(events)))
+				for _, event := range events {
+					endEventsChannel, err := channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
+					if err != nil {
+						continue
+					}
+					endEvents := <-endEventsChannel
+					atomic.AddInt64(&sendCount, int64(len(endEvents)))
+				}
 			case <-doneChannel:
 				return
 			}

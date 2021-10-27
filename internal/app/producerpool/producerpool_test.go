@@ -76,7 +76,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	producerPool.Start(ctx)
 
 	for i := uint64(1); i <= d.numEvents; i++ {
-		eventsChannel <- []subscription.ServiceEvent{{ID: i}}
+		eventsChannel <- []subscription.ServiceEvent{{ID: i, Service: &subscription.Service{ID: i}}}
+		channelLocator.GetEventsServiceIDWriteChannel(i) <- []subscription.ServiceEvent{{ID: i, Service: &subscription.Service{ID: i}}}
 	}
 
 	producerPool.StopWait()
@@ -169,7 +170,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	doneChannel := producerPool.Start(ctx)
 
 	for i := uint64(1); i <= d.numEvents; i++ {
-		eventsChannel <- []subscription.ServiceEvent{{ID: i}}
+		eventsChannel <- []subscription.ServiceEvent{{ID: i, Service: &subscription.Service{ID: i}}}
+		channelLocator.GetEventsServiceIDWriteChannel(i) <- []subscription.ServiceEvent{{ID: i, Service: &subscription.Service{ID: i}}}
 	}
 
 	cancelCtx()

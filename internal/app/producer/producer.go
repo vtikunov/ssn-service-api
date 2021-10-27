@@ -27,6 +27,7 @@ type eventRepoUnlockRemover interface {
 
 type channelLocator interface {
 	GetMainEventsReadChannel() <-chan []subscription.ServiceEvent
+	GetEventsServiceIDReadChannel(serviceID uint64) (<-chan []subscription.ServiceEvent, error)
 }
 
 type producer struct {
@@ -83,15 +84,24 @@ func NewProducer(
 func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []subscription.ServiceEvent) {
 	errorIDs := make([]uint64, 0)
 	completeIDs := make([]uint64, 0)
-	for i, event := range events {
-		if err := p.sender.Send(ctx, &events[i]); err != nil {
-			log.Printf("producer: failed to send event with ID %v - %v", event.ID, err)
-			errorIDs = append(errorIDs, event.ID)
-
-			continue
+	for _, event := range events {
+		eventChannel, err := p.channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
+		for err != nil {
+			eventChannel, err = p.channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
 		}
 
-		completeIDs = append(completeIDs, event.ID)
+		eventsForServiceID := <-eventChannel
+
+		for es, eventForService := range eventsForServiceID {
+			if err := p.sender.Send(ctx, &eventsForServiceID[es]); err != nil {
+				log.Printf("producer: failed to send event with ID %v - %v", eventForService.ID, err)
+				errorIDs = append(errorIDs, eventForService.ID)
+
+				continue
+			}
+
+			completeIDs = append(completeIDs, eventForService.ID)
+		}
 	}
 
 	if len(errorIDs) > 0 {

@@ -73,12 +73,12 @@ func (cp *consumerPool) dispatch(ctx context.Context) {
 
 	for {
 		select {
-		case <-ctx.Done():
-			cp.stop()
 		case <-cp.stopChannel:
 			if atomic.LoadInt64(&consumerCount) == 0 {
 				return
 			}
+		case <-ctx.Done():
+			cp.stop()
 		default:
 			if atomic.LoadInt64(&consumerCount) >= cp.maxConsumers {
 				break

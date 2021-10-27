@@ -41,18 +41,24 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	sender := mocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
-	repo.EXPECT().Lock(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 			start := uint64(atomic.LoadInt64(&lockCount)) + 1
 			result := make([]subscription.ServiceEvent, n)
 
 			for i := uint64(0); i < n; i++ {
-				result[i] = subscription.ServiceEvent{ID: start + i}
+				result[i] = subscription.ServiceEvent{ID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
-			atomic.AddInt64(&lockCount, int64(n))
-
 			return result, nil
+		},
+	).AnyTimes()
+
+	repo.EXPECT().LockByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
+			atomic.AddInt64(&lockCount, 1)
+
+			return []subscription.ServiceEvent{{ID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
 		},
 	).AnyTimes()
 
@@ -174,18 +180,24 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	sender := mocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
-	repo.EXPECT().Lock(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 			start := uint64(atomic.LoadInt64(&lockCount)) + 1
 			result := make([]subscription.ServiceEvent, n)
 
 			for i := uint64(0); i < n; i++ {
-				result[i] = subscription.ServiceEvent{ID: start + i}
+				result[i] = subscription.ServiceEvent{ID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
-			atomic.AddInt64(&lockCount, int64(n))
-
 			return result, nil
+		},
+	).AnyTimes()
+
+	repo.EXPECT().LockByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
+			atomic.AddInt64(&lockCount, 1)
+
+			return []subscription.ServiceEvent{{ID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
 		},
 	).AnyTimes()
 
