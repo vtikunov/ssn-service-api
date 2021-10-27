@@ -21,7 +21,7 @@ type eventRepoLocker interface {
 type consumer struct {
 	batchTime     time.Duration
 	batchSize     uint64
-	eventsChannel chan<- subscription.ServiceEvent
+	eventsChannel chan<- []subscription.ServiceEvent
 	eventRepo     eventRepoLocker
 	doneChannel   chan interface{}
 	stopChannel   chan interface{}
@@ -43,7 +43,7 @@ type consumer struct {
 func NewConsumer(
 	batchTime time.Duration,
 	batchSize uint64,
-	eventsChannel chan<- subscription.ServiceEvent,
+	eventsChannel chan<- []subscription.ServiceEvent,
 	eventRepo eventRepoLocker,
 ) *consumer {
 
@@ -88,9 +88,7 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 
 						continue
 					}
-					for _, event := range events {
-						c.eventsChannel <- event
-					}
+					c.eventsChannel <- events
 				}
 			}
 		}()
@@ -117,7 +115,7 @@ func (c *consumer) StopWait() {
 type consumerFactory struct {
 	batchTime     time.Duration
 	batchSize     uint64
-	eventsChannel chan<- subscription.ServiceEvent
+	eventsChannel chan<- []subscription.ServiceEvent
 	eventRepo     eventRepoLocker
 }
 
@@ -135,7 +133,7 @@ type consumerFactory struct {
 func NewConsumerFactory(
 	batchTime time.Duration,
 	batchSize uint64,
-	eventsChannel chan<- subscription.ServiceEvent,
+	eventsChannel chan<- []subscription.ServiceEvent,
 	eventRepo eventRepoLocker,
 ) *consumerFactory {
 

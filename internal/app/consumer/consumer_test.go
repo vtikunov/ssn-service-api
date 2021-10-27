@@ -53,7 +53,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		},
 	).AnyTimes()
 
-	eventsChannel := make(chan subscription.ServiceEvent)
+	eventsChannel := make(chan []subscription.ServiceEvent)
 
 	consumer := consumerpkg.NewConsumer(time.Microsecond, d.batchSize, eventsChannel, repo)
 
@@ -65,8 +65,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		defer close(doneChannelRoutine)
 		for {
 			select {
-			case <-eventsChannel:
-				atomic.AddInt64(&sendCount, 1)
+			case events := <-eventsChannel:
+				atomic.AddInt64(&sendCount, int64(len(events)))
 			case <-doneChannel:
 				return
 			}
@@ -142,7 +142,7 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 		},
 	).AnyTimes()
 
-	eventsChannel := make(chan subscription.ServiceEvent)
+	eventsChannel := make(chan []subscription.ServiceEvent)
 
 	consumer := consumerpkg.NewConsumer(time.Microsecond, d.batchSize, eventsChannel, repo)
 
@@ -154,8 +154,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 		defer close(doneChannelRoutine)
 		for {
 			select {
-			case <-eventsChannel:
-				atomic.AddInt64(&sendCount, 1)
+			case events := <-eventsChannel:
+				atomic.AddInt64(&sendCount, int64(len(events)))
 			case <-doneChannel:
 				return
 			}

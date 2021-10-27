@@ -27,7 +27,7 @@ type eventRepoUnlockRemover interface {
 
 type producer struct {
 	timeout       time.Duration
-	eventsChannel <-chan subscription.ServiceEvent
+	eventsChannel <-chan []subscription.ServiceEvent
 	sender        eventSender
 	eventRepo     eventRepoUnlockRemover
 	doneChannel   chan interface{}
@@ -55,7 +55,7 @@ type producer struct {
 // с репозиторием событий eventRepo, которые будут запущены конкуретно.
 func NewProducer(
 	timeout time.Duration,
-	eventsChannel <-chan subscription.ServiceEvent,
+	eventsChannel <-chan []subscription.ServiceEvent,
 	sender eventSender,
 	eventRepo eventRepoUnlockRemover,
 	maxWorkers uint64,
@@ -76,6 +76,37 @@ func NewProducer(
 	}
 }
 
+func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []subscription.ServiceEvent) {
+	errorIDs := make([]uint64, 0)
+	completeIDs := make([]uint64, 0)
+	for i, event := range events {
+		if err := p.sender.Send(ctx, &events[i]); err != nil {
+			log.Printf("producer: failed to send event with ID %v - %v", event.ID, err)
+			errorIDs = append(errorIDs, event.ID)
+
+			continue
+		}
+
+		completeIDs = append(completeIDs, event.ID)
+	}
+
+	if len(errorIDs) > 0 {
+		p.workerPool.Submit(func() {
+			if err := p.eventRepo.Unlock(errorIDs); err != nil {
+				log.Printf("producer: failed to unlock events after fail send - %v", err)
+			}
+		})
+	}
+
+	if len(completeIDs) > 0 {
+		p.workerPool.Submit(func() {
+			if err := p.eventRepo.Remove(completeIDs); err != nil {
+				log.Printf("producer: failed to remove events after send - %v", err)
+			}
+		})
+	}
+}
+
 // Start запускает работу продьюсера.
 //
 // Возвращает канал для чтения doneChannel, который закрывается продьюсером при его остановке.
@@ -84,25 +115,6 @@ func (p *producer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 		p.doneChannel = make(chan interface{})
 		p.stopChannel = make(chan interface{})
 		p.workerPool = workerpool.New(p.maxWorkers)
-
-		sendEventAndUnlockOrRemove := func(event *subscription.ServiceEvent) {
-			if err := p.sender.Send(ctx, event); err != nil {
-				log.Printf("producer: failed to send event with ID %v - %v", event.ID, err)
-				p.workerPool.Submit(func() {
-					if err := p.eventRepo.Unlock([]uint64{event.ID}); err != nil {
-						log.Printf("producer: failed to unlock event with ID %v after fail send - %v", event.ID, err)
-					}
-				})
-
-				return
-			}
-
-			p.workerPool.Submit(func() {
-				if err := p.eventRepo.Remove([]uint64{event.ID}); err != nil {
-					log.Printf("producer: failed to remove event with ID %v after send - %v", event.ID, err)
-				}
-			})
-		}
 
 		go func() {
 			defer func() {
@@ -114,8 +126,8 @@ func (p *producer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 
 			for {
 				select {
-				case event := <-p.eventsChannel:
-					sendEventAndUnlockOrRemove(&event)
+				case events := <-p.eventsChannel:
+					p.sendEventsAndUnlockOrRemove(ctx, events)
 
 					continue
 				case <-ctx.Done():
@@ -150,7 +162,7 @@ func (p *producer) StopWait() {
 }
 
 type producerFactory struct {
-	eventsChannel <-chan subscription.ServiceEvent
+	eventsChannel <-chan []subscription.ServiceEvent
 	sender        eventSender
 	eventRepo     eventRepoUnlockRemover
 	maxWorkers    uint64
@@ -169,7 +181,7 @@ type producerFactory struct {
 // maxWorkers: определяет максимальное количество вспомогательных воркеров работы
 // с репозиторием событий eventRepo, которые будут запущены конкуретно.
 func NewProducerFactory(
-	eventsChannel <-chan subscription.ServiceEvent,
+	eventsChannel <-chan []subscription.ServiceEvent,
 	sender eventSender,
 	eventRepo eventRepoUnlockRemover,
 	maxWorkers uint64,

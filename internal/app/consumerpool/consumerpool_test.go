@@ -54,7 +54,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		},
 	).AnyTimes()
 
-	eventsChannel := make(chan subscription.ServiceEvent)
+	eventsChannel := make(chan []subscription.ServiceEvent)
 
 	consumerPool := consumerpool.NewConsumerPool(
 		d.maxConsumers,
@@ -71,8 +71,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 			defer wg.Done()
 			for {
 				select {
-				case <-eventsChannel:
-					atomic.AddInt64(&sendCount, 1)
+				case events := <-eventsChannel:
+					atomic.AddInt64(&sendCount, int64(len(events)))
 				case <-doneChannelRoutine:
 					return
 				}
@@ -154,7 +154,7 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 		},
 	).AnyTimes()
 
-	eventsChannel := make(chan subscription.ServiceEvent)
+	eventsChannel := make(chan []subscription.ServiceEvent)
 
 	consumerPool := consumerpool.NewConsumerPool(
 		d.maxConsumers,
@@ -171,8 +171,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 			defer wg.Done()
 			for {
 				select {
-				case <-eventsChannel:
-					atomic.AddInt64(&sendCount, 1)
+				case events := <-eventsChannel:
+					atomic.AddInt64(&sendCount, int64(len(events)))
 				case <-doneChannelRoutine:
 					return
 				}

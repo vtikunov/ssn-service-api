@@ -86,7 +86,7 @@ type retranslator struct {
 
 // NewRetranslator создает новый ретранслятор.
 func NewRetranslator(cfg *Configuration) *retranslator {
-	eventsChannel := make(chan subscription.ServiceEvent, cfg.EventChannelSize)
+	eventsChannel := make(chan []subscription.ServiceEvent, cfg.EventChannelSize)
 
 	consumerPool := consumerpool.NewConsumerPool(
 		cfg.MaxConsumers,
