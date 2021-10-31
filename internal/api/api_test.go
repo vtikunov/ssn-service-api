@@ -56,6 +56,7 @@ func prepareClient(ctx context.Context, t *testing.T) (client pb.SsnServiceApiSe
 	return pb.NewSsnServiceApiServiceClient(conn), closeCl
 }
 
+//nolint:dupl
 func TestServiceAPI_CreateServiceV1Request_NameValidation(t *testing.T) {
 	ctx := context.Background()
 	client, closeCl := prepareClient(ctx, t)
@@ -79,6 +80,7 @@ func TestServiceAPI_CreateServiceV1Request_NameValidation(t *testing.T) {
 	}
 }
 
+//nolint:dupl
 func TestServiceAPI_DescribeServiceV1Request_ServiceIDValidation(t *testing.T) {
 	ctx := context.Background()
 	client, closeCl := prepareClient(ctx, t)
@@ -102,6 +104,7 @@ func TestServiceAPI_DescribeServiceV1Request_ServiceIDValidation(t *testing.T) {
 	}
 }
 
+//nolint:dupl
 func TestServiceAPI_RemoveServiceV1Request_ServiceIDValidation(t *testing.T) {
 	ctx := context.Background()
 	client, closeCl := prepareClient(ctx, t)
