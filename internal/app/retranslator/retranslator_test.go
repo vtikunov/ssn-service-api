@@ -41,6 +41,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	sender := mocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
+	//nolint:dupl
 	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 			start := uint64(atomic.LoadInt64(&lockCount)) + 1
@@ -180,6 +181,7 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	sender := mocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
+	//nolint:dupl
 	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
 			start := uint64(atomic.LoadInt64(&lockCount)) + 1

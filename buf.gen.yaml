@@ -1,34 +1,26 @@
 version: v1
 plugins:
   - name: go
-    out: pkg/omp-template-api
+    out: pkg/ssn-service-api
     opt:
       - paths=import
     strategy: directory
 
   - name: go-grpc
-    out: pkg/omp-template-api
+    out: pkg/ssn-service-api
     opt:
       - paths=import
     strategy: directory
 
-  - name: python
-    out: pypkg/omp-template-api
-    strategy: directory
-
-  - name: grpclib_python
-    out: pypkg/omp-template-api
-    strategy: directory
-
   - name: grpc-gateway
-    out: pkg/omp-template-api
+    out: pkg/ssn-service-api
     opt:
       - logtostderr=true
       - paths=import
     strategy: directory
 
   - name: validate
-    out: pkg/omp-template-api
+    out: pkg/ssn-service-api
     opt:
       - lang=go
     strategy: directory

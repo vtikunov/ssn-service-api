@@ -9,6 +9,7 @@ import (
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
+// Consumer - воркер-консьюмер
 type Consumer interface {
 	Start(ctx context.Context) (doneChannel <-chan interface{})
 	StopWait()
