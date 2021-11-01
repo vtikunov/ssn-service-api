@@ -61,7 +61,7 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
 	cd pkg/$(SERVICE_NAME) && ls go.mod || (go mod init github.com/$(SERVICE_PATH)/pkg/$(SERVICE_NAME) && go mod tidy)
 
 .generate-finalize-python:
-	find pypkg/ssn-service-api -type d -exec touch {}/__init__.py \;
+	find pypkg/ssn-service-api -type d -not -path "pypkg/ssn-service-api/dist" -exec touch {}/__init__.py \;
 
 # ----------------------------------------------------------------
 

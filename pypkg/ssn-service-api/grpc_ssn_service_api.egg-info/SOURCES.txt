@@ -1,6 +1,5 @@
 pyproject.toml
 setup.py
-dist/__init__.py
 google/__init__.py
 google/api/__init__.py
 google/api/annotations_grpc.py
