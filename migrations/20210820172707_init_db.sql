@@ -1,8 +1,8 @@
 -- +goose Up
-CREATE TABLE template (
+CREATE TABLE service (
   id BIGSERIAL PRIMARY KEY,
-  foo BIGINT NOT NULL
+  name VARCHAR NOT NULL
 );
 
 -- +goose Down
-DROP TABLE template;
+DROP TABLE service;

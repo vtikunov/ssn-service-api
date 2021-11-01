@@ -2,15 +2,15 @@ import asyncio
 
 from grpclib.client import Channel
 
-from ozonmp.omp_template_api.v1.omp_template_api_grpc import OmpTemplateApiServiceStub
-from ozonmp.omp_template_api.v1.omp_template_api_pb2 import DescribeTemplateV1Request
+from ozonmp.ssn_service_api.v1.ssn_service_api_grpc import SsnServiceApiServiceStub
+from ozonmp.ssn_service_api.v1.ssn_service_api_pb2 import DescribeServiceV1Request
 
 async def main():
     async with Channel('127.0.0.1', 8082) as channel:
-        client = OmpTemplateApiServiceStub(channel)
+        client = SsnServiceApiServiceStub(channel)
 
-        req = DescribeTemplateV1Request(template_id=1)
-        reply = await client.DescribeTemplateV1(req)
+        req = DescribeServiceV1Request(service_id=1)
+        reply = await client.DescribeServiceV1(req)
         print(reply.message)
 
 
