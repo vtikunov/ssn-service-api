@@ -124,15 +124,7 @@ $ pgcli "postgresql://docker:docker@localhost:5432/ssn_service_api"
 ### Python client
 
 ```shell
-$ python -m venv .venv
-$ . .venv/bin/activate
-$ make deps
-$ make generate
-$ cd pypkg/ssn-service-api
-$ python setup.py install
-$ cd ../..
-$ docker-compose up -d
-$ python scripts/grpc_client.py
+$ pip install --extra-index-url http://localhost:8081 grpc_ssn_service_api
 ```
 
 
