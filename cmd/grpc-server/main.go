@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/pressly/goose/v3"
 	"github.com/rs/zerolog"
@@ -24,8 +26,17 @@ var (
 
 func main() {
 	if err := config.ReadConfigYML("config.yml"); err != nil {
-		log.Fatal().Err(err).Msg("Failed init configuration")
+		logFatalFailedConfig(err)
 	}
+
+	if _, err := os.Stat(".config.local.yml"); err == nil {
+		if err := config.ReadConfigYML(".config.local.yml"); err != nil {
+			logFatalFailedConfig(err)
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		logFatalFailedConfig(err)
+	}
+
 	cfg := config.GetConfigInstance()
 
 	migration := flag.Bool("migration", true, "Defines the migration start option")
@@ -80,4 +91,8 @@ func main() {
 
 		return
 	}
+}
+
+func logFatalFailedConfig(err error) {
+	log.Fatal().Err(err).Msg("Failed init configuration")
 }

@@ -7,5 +7,6 @@ bin/
 data/
 main
 bin
+.config.local.yml
 
 cover.out
