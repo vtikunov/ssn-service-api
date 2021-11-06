@@ -105,6 +105,10 @@ type Config struct {
 
 // ReadConfigYML - read configurations from file and init instance Config.
 func ReadConfigYML(filePath string) error {
+	if cfg != nil {
+		return nil
+	}
+
 	file, err := os.Open(filepath.Clean(filePath))
 	if err != nil {
 		return err
