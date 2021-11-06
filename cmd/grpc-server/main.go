@@ -49,7 +49,6 @@ func main() {
 		Str("environment", cfg.Project.Environment).
 		Msgf("Starting service: %s", cfg.Project.Name)
 
-	// default: zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if cfg.Project.Debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
@@ -67,9 +66,12 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed init postgres")
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Error().Err(err).Msg("Failed close DB connection")
+		}
+	}()
 
-	*migration = false // todo: need to delete this line for homework-4
 	if *migration {
 		if err = goose.Up(db.DB, cfg.Database.Migrations); err != nil {
 			log.Error().Err(err).Msg("Migration failed")
@@ -84,7 +86,11 @@ func main() {
 
 		return
 	}
-	defer tracing.Close()
+	defer func() {
+		if err := tracing.Close(); err != nil {
+			log.Error().Err(err).Msg("Failed close tracer")
+		}
+	}()
 
 	if err := server.NewGrpcServer(db, batchSize).Start(&cfg); err != nil {
 		log.Error().Err(err).Msg("Failed creating gRPC server")
