@@ -13,7 +13,17 @@ import (
 
 var ErrNoService = errors.New("service is not exists")
 
-// ServiceRepo - DAO Service
+// ServiceRepo - Репозиторий сервисов
+//
+// Describe: возвращает из репозитория сервис по его ID.
+//
+// Add: добавляет в репозиторий сервис.
+//
+// List: возвращает постраничный список сервисов.
+//
+// Remove: удаляет из репозитория сервис.
+// Возвращает true если сервис существовал в репозитории и успешно удален методом.
+//
 type ServiceRepo interface {
 	Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error)
 	Add(ctx context.Context, service *subscription.Service) error
@@ -30,6 +40,7 @@ func NewRepo(db *sqlx.DB) *repo {
 	return &repo{db: db}
 }
 
+// Describe - возвращает из репозитория сервис по его ID.
 func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error) {
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("service").Where(sq.Eq{"id": serviceID})
 
@@ -37,6 +48,7 @@ func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Ser
 	if err != nil {
 		return nil, err
 	}
+
 	var service subscription.Service
 	err = r.db.QueryRowxContext(ctx, s, args...).StructScan(&service)
 
@@ -49,6 +61,7 @@ func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Ser
 	return &service, err
 }
 
+// Add - добавляет в репозиторий сервис.
 func (r repo) Add(ctx context.Context, service *subscription.Service) error {
 	query := sq.Insert("service").PlaceholderFormat(sq.Dollar)
 	query = query.Columns("name", "created_at", "updated_at")
@@ -73,6 +86,7 @@ func (r repo) Add(ctx context.Context, service *subscription.Service) error {
 	return ErrNoService
 }
 
+// List - возвращает постраничный список сервисов.
 func (r repo) List(ctx context.Context) ([]*subscription.Service, error) {
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("service")
 
@@ -87,6 +101,8 @@ func (r repo) List(ctx context.Context) ([]*subscription.Service, error) {
 	return res, err
 }
 
+// Remove - удаляет из репозитория сервис.
+// Возвращает true если сервис существовал в репозитории и успешно удален методом.
 func (r repo) Remove(ctx context.Context, serviceID uint64) (ok bool, err error) {
 	query := sq.Delete("service").PlaceholderFormat(sq.Dollar).Where(sq.Eq{"id": serviceID})
 	s, args, err := query.ToSql()
