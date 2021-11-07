@@ -48,7 +48,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 			result := make([]subscription.ServiceEvent, n)
 
 			for i := uint64(0); i < n; i++ {
-				result[i] = subscription.ServiceEvent{ID: start + i, Service: &subscription.Service{ID: start + i}}
+				result[i] = subscription.ServiceEvent{ID: start + i, ServiceID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
 			return result, nil
@@ -59,7 +59,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
 			atomic.AddInt64(&lockCount, 1)
 
-			return []subscription.ServiceEvent{{ID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
+			return []subscription.ServiceEvent{{ID: serviceID, ServiceID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
 		},
 	).AnyTimes()
 
@@ -188,7 +188,7 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 			result := make([]subscription.ServiceEvent, n)
 
 			for i := uint64(0); i < n; i++ {
-				result[i] = subscription.ServiceEvent{ID: start + i, Service: &subscription.Service{ID: start + i}}
+				result[i] = subscription.ServiceEvent{ID: start + i, ServiceID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
 			return result, nil
@@ -199,7 +199,7 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
 			atomic.AddInt64(&lockCount, 1)
 
-			return []subscription.ServiceEvent{{ID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
+			return []subscription.ServiceEvent{{ID: serviceID, ServiceID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
 		},
 	).AnyTimes()
 

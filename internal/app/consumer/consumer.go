@@ -98,7 +98,7 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 					}
 
 					for _, event := range events {
-						eventsByServiceID, err := c.eventRepo.LockByServiceID(ctx, event.Service.ID)
+						eventsByServiceID, err := c.eventRepo.LockByServiceID(ctx, event.ServiceID)
 						if err != nil {
 							log.Printf("consumer: failed to lock events by service ID - %v", err)
 							if err := c.eventRepo.Unlock([]uint64{event.ID}); err != nil {
@@ -109,7 +109,7 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 						}
 
 						c.channelLocator.GetMainEventsWriteChannel() <- []subscription.ServiceEvent{event}
-						c.channelLocator.GetEventsServiceIDWriteChannel(event.Service.ID) <- eventsByServiceID
+						c.channelLocator.GetEventsServiceIDWriteChannel(event.ServiceID) <- eventsByServiceID
 					}
 				}
 			}

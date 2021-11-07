@@ -16,10 +16,10 @@ type Service struct {
 }
 
 // EventType - тип события экземпляра сервиса.
-type EventType uint8
+type EventType string
 
 // EventStatus - статус события экземпляра сервиса.
-type EventStatus uint8
+type EventStatus string
 
 // Типы событий экземпляра сервиса
 //
@@ -29,9 +29,9 @@ type EventStatus uint8
 //
 // Removed: сервис удален.
 const (
-	Created EventType = iota
-	Updated
-	Removed
+	Created EventType = "CREATED"
+	Updated EventType = "UPDATED"
+	Removed EventType = "REMOVED"
 )
 
 // Статусы событий экземпляра сервиса
@@ -40,13 +40,15 @@ const (
 //
 // Processed: событие обрабатывается.
 const (
-	Deferred EventStatus = iota
-	Processed
+	Deferred  EventStatus = "DEFERRED"
+	Processed EventStatus = "PROCESSED"
 )
 
 // ServiceEvent - событие экземпляра сервиса.
 //
 // ID: идентификатор события.
+//
+// ServiceID: идентификатор сервиса.
 //
 // Type: тип события (EventType).
 //
@@ -54,8 +56,9 @@ const (
 //
 // Service: экземпляр сервиса (Service).
 type ServiceEvent struct {
-	ID      uint64
-	Type    EventType
-	Status  EventStatus
-	Service *Service
+	ID        uint64
+	ServiceID uint64
+	Type      EventType
+	Status    EventStatus
+	Service   *Service
 }

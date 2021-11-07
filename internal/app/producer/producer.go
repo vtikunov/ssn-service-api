@@ -85,9 +85,9 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 	errorIDs := make([]uint64, 0)
 	completeIDs := make([]uint64, 0)
 	for _, event := range events {
-		eventChannel, err := p.channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
+		eventChannel, err := p.channelLocator.GetEventsServiceIDReadChannel(event.ServiceID)
 		for err != nil {
-			eventChannel, err = p.channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
+			eventChannel, err = p.channelLocator.GetEventsServiceIDReadChannel(event.ServiceID)
 		}
 
 		eventsForServiceID := <-eventChannel
