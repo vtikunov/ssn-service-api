@@ -25,7 +25,7 @@ func (o *serviceAPI) UpdateServiceV1(
 
 	service := subscription.Service{ID: req.ServiceId, Name: req.Name, Description: req.Description, UpdatedAt: time.Now()}
 
-	if err := o.repo.Update(ctx, &service); err != nil {
+	if err := o.srvService.Update(ctx, &service); err != nil {
 		log.Error().Err(err).Msg("UpdateServiceV1 -- failed")
 
 		return nil, status.Error(codes.Internal, err.Error())

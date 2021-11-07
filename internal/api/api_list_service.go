@@ -20,7 +20,7 @@ func (o *serviceAPI) ListServicesV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	services, err := o.repo.List(ctx)
+	services, err := o.srvService.List(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("ListServicesV1 -- failed")
 

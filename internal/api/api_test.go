@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -27,7 +29,7 @@ func dialer(t *testing.T) func(context.Context, string) (net.Conn, error) {
 	ctrl := gomock.NewController(t)
 	repo := mocks.NewMockServiceRepo(ctrl)
 
-	pb.RegisterSsnServiceApiServiceServer(server, NewServiceAPI(repo))
+	pb.RegisterSsnServiceApiServiceServer(server, NewServiceAPI(subscription.NewServiceService(repo)))
 
 	go func() {
 		if err := server.Serve(listener); err != nil {

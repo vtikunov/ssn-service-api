@@ -53,8 +53,8 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed init postgres")
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
-			log.Error().Err(err).Msg("Failed close DB connection")
+		if e := db.Close(); e != nil {
+			log.Error().Err(e).Msg("Failed close DB connection")
 		}
 	}()
 

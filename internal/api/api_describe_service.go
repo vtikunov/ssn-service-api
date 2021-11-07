@@ -20,7 +20,7 @@ func (o *serviceAPI) DescribeServiceV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	service, err := o.repo.Describe(ctx, req.ServiceId)
+	service, err := o.srvService.Describe(ctx, req.ServiceId)
 	if err != nil {
 		log.Error().Err(err).Msg("DescribeServiceV1 -- failed")
 

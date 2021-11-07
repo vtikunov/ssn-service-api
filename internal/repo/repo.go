@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// ErrNoService - ошибка отсутствия сервиса в репозитории.
 var ErrNoService = errors.New("service is not exists")
 
 // ServiceRepo - Репозиторий сервисов
@@ -38,7 +39,7 @@ type repo struct {
 	db *sqlx.DB
 }
 
-// NewRepo создаёт инстанс репозитория
+// NewRepo создаёт инстанс репозитория.
 func NewRepo(db *sqlx.DB) *repo {
 	return &repo{db: db}
 }

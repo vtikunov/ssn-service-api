@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -106,8 +108,9 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 	)
 
 	r := repo.NewRepo(s.db)
+	srv := subscription.NewServiceService(r)
 
-	pb.RegisterSsnServiceApiServiceServer(grpcServer, api.NewServiceAPI(r))
+	pb.RegisterSsnServiceApiServiceServer(grpcServer, api.NewServiceAPI(srv))
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(grpcServer)
 

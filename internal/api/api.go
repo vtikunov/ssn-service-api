@@ -18,7 +18,7 @@ var (
 	})
 )
 
-type serviceRepo interface {
+type serviceService interface {
 	Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error)
 	Add(ctx context.Context, service *subscription.Service) error
 	Update(ctx context.Context, service *subscription.Service) error
@@ -28,12 +28,12 @@ type serviceRepo interface {
 
 type serviceAPI struct {
 	pb.UnimplementedSsnServiceApiServiceServer
-	repo serviceRepo
+	srvService serviceService
 }
 
 // NewServiceAPI returns api of ssn-service-api service
-func NewServiceAPI(r serviceRepo) pb.SsnServiceApiServiceServer {
-	return &serviceAPI{repo: r}
+func NewServiceAPI(srv serviceService) pb.SsnServiceApiServiceServer {
+	return &serviceAPI{srvService: srv}
 }
 
 func convertServiceToPb(service *subscription.Service) *pb.Service {

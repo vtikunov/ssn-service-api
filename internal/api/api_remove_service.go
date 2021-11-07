@@ -20,7 +20,7 @@ func (o *serviceAPI) RemoveServiceV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ok, err := o.repo.Remove(ctx, req.ServiceId)
+	ok, err := o.srvService.Remove(ctx, req.ServiceId)
 	if err != nil {
 		log.Error().Err(err).Msg("RemoveServiceV1 -- failed")
 

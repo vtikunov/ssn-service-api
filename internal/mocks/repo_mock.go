@@ -93,3 +93,17 @@ func (mr *MockServiceRepoMockRecorder) Remove(arg0, arg1 interface{}) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockServiceRepo)(nil).Remove), arg0, arg1)
 }
+
+// Update mocks base method.
+func (m *MockServiceRepo) Update(arg0 context.Context, arg1 *subscription.Service) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockServiceRepoMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockServiceRepo)(nil).Update), arg0, arg1)
+}
