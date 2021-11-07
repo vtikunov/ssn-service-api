@@ -35,17 +35,19 @@ type ServiceRepo interface {
 	Remove(ctx context.Context, serviceID uint64) (ok bool, err error)
 }
 
-type repo struct {
-	db *sqlx.DB
+type serviceRepo struct {
+	db QueryerExecer
 }
 
-// NewRepo создаёт инстанс репозитория.
-func NewRepo(db *sqlx.DB) *repo {
-	return &repo{db: db}
+// NewServiceRepo создаёт инстанс репозитория.
+func NewServiceRepo(db QueryerExecer) *serviceRepo {
+	return &serviceRepo{db: db}
 }
 
 // Describe - возвращает из репозитория сервис по его ID.
-func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error) {
+func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx QueryerExecer) (*subscription.Service, error) {
+	execer := r.getExecer(tx)
+
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
 	query = query.Where(sq.And{sq.Eq{"id": serviceID}, sq.Eq{"is_removed": false}})
 
@@ -55,7 +57,7 @@ func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Ser
 	}
 
 	var service subscription.Service
-	err = r.db.QueryRowxContext(ctx, s, args...).StructScan(&service)
+	err = execer.QueryRowxContext(ctx, s, args...).StructScan(&service)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNoService
@@ -67,11 +69,13 @@ func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Ser
 }
 
 // Add - добавляет в репозиторий сервис.
-func (r repo) Add(ctx context.Context, service *subscription.Service) error {
+func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx QueryerExecer) error {
+	execer := r.getExecer(tx)
+
 	query := sq.Insert("services").PlaceholderFormat(sq.Dollar)
 	query = query.Columns("name", "description", "created_at", "updated_at")
 	query = query.Values(service.Name, service.Description, service.CreatedAt, service.UpdatedAt)
-	query = query.Suffix("RETURNING id").RunWith(r.db)
+	query = query.Suffix("RETURNING id").RunWith(execer)
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
@@ -92,7 +96,9 @@ func (r repo) Add(ctx context.Context, service *subscription.Service) error {
 }
 
 // Update - обновляет сервис.
-func (r repo) Update(ctx context.Context, service *subscription.Service) error {
+func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service, tx QueryerExecer) error {
+	execer := r.getExecer(tx)
+
 	query := sq.Update("services").PlaceholderFormat(sq.Dollar)
 	query = query.Set("name", service.Name)
 	query = query.Set("description", service.Description)
@@ -104,7 +110,7 @@ func (r repo) Update(ctx context.Context, service *subscription.Service) error {
 		return err
 	}
 
-	res, err := r.db.ExecContext(ctx, s, args...)
+	res, err := execer.ExecContext(ctx, s, args...)
 
 	if err != nil {
 		return err
@@ -124,7 +130,9 @@ func (r repo) Update(ctx context.Context, service *subscription.Service) error {
 }
 
 // List - возвращает постраничный список сервисов.
-func (r repo) List(ctx context.Context) ([]*subscription.Service, error) {
+func (r *serviceRepo) List(ctx context.Context, tx QueryerExecer) ([]*subscription.Service, error) {
+	execer := r.getExecer(tx)
+
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
 	query = query.Where(sq.Eq{"is_removed": false})
 	query = query.OrderBy("id ASC")
@@ -135,14 +143,26 @@ func (r repo) List(ctx context.Context) ([]*subscription.Service, error) {
 	}
 
 	res := make([]*subscription.Service, 0)
-	err = r.db.SelectContext(ctx, &res, s, args...)
+	rows, err := execer.QueryContext(ctx, s, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = sqlx.StructScan(rows, &res)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return res, err
 }
 
 // Remove - удаляет из репозитория сервис.
 // Возвращает true если сервис существовал в репозитории и успешно удален методом.
-func (r repo) Remove(ctx context.Context, serviceID uint64) (ok bool, err error) {
+func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx QueryerExecer) (ok bool, err error) {
+	execer := r.getExecer(tx)
+
 	query := sq.Update("services").PlaceholderFormat(sq.Dollar)
 	query = query.Set("is_removed", true)
 	query = query.Where(sq.And{sq.Eq{"id": serviceID}, sq.Eq{"is_removed": false}})
@@ -152,7 +172,7 @@ func (r repo) Remove(ctx context.Context, serviceID uint64) (ok bool, err error)
 		return false, err
 	}
 
-	res, err := r.db.ExecContext(ctx, s, args...)
+	res, err := execer.ExecContext(ctx, s, args...)
 
 	if err != nil {
 		return false, err
@@ -165,4 +185,12 @@ func (r repo) Remove(ctx context.Context, serviceID uint64) (ok bool, err error)
 	}
 
 	return num > 0, nil
+}
+
+func (r *serviceRepo) getExecer(tx QueryerExecer) QueryerExecer {
+	if tx != nil {
+		return tx
+	}
+
+	return r.db
 }

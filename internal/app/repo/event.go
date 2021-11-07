@@ -32,6 +32,5 @@ type EventRepo interface {
 	LockByServiceID(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error)
 	Unlock(eventIDs []uint64) error
 
-	Add(ctx context.Context, event []subscription.ServiceEvent) error
 	Remove(eventIDs []uint64) error
 }

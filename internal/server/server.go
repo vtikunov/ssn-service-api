@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
+	"github.com/ozonmp/ssn-service-api/internal/database"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
@@ -29,6 +29,7 @@ import (
 	"github.com/ozonmp/ssn-service-api/internal/api"
 	"github.com/ozonmp/ssn-service-api/internal/config"
 	"github.com/ozonmp/ssn-service-api/internal/repo"
+	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
 	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 )
 
@@ -107,8 +108,10 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		)),
 	)
 
-	r := repo.NewRepo(s.db)
-	srv := subscription.NewServiceService(r)
+	r := repo.NewServiceRepo(s.db)
+	evr := repo.NewEventRepo(s.db)
+	txs := database.NewTransactionalSession(s.db)
+	srv := subscription.NewServiceService(r, evr, txs)
 
 	pb.RegisterSsnServiceApiServiceServer(grpcServer, api.NewServiceAPI(srv))
 	grpc_prometheus.EnableHandlingTimeHistogram()
