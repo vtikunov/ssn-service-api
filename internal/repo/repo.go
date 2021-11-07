@@ -42,7 +42,7 @@ func NewRepo(db *sqlx.DB) *repo {
 
 // Describe - возвращает из репозитория сервис по его ID.
 func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error) {
-	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("service").Where(sq.Eq{"id": serviceID})
+	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services").Where(sq.Eq{"id": serviceID})
 
 	s, args, err := query.ToSql()
 	if err != nil {
@@ -63,7 +63,7 @@ func (r repo) Describe(ctx context.Context, serviceID uint64) (*subscription.Ser
 
 // Add - добавляет в репозиторий сервис.
 func (r repo) Add(ctx context.Context, service *subscription.Service) error {
-	query := sq.Insert("service").PlaceholderFormat(sq.Dollar)
+	query := sq.Insert("services").PlaceholderFormat(sq.Dollar)
 	query = query.Columns("name", "created_at", "updated_at")
 	query = query.Values(service.Name, service.CreatedAt, service.UpdatedAt)
 	query = query.Suffix("RETURNING id").RunWith(r.db)
@@ -88,7 +88,7 @@ func (r repo) Add(ctx context.Context, service *subscription.Service) error {
 
 // List - возвращает постраничный список сервисов.
 func (r repo) List(ctx context.Context) ([]*subscription.Service, error) {
-	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("service")
+	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
 
 	s, args, err := query.ToSql()
 	if err != nil {
@@ -104,7 +104,7 @@ func (r repo) List(ctx context.Context) ([]*subscription.Service, error) {
 // Remove - удаляет из репозитория сервис.
 // Возвращает true если сервис существовал в репозитории и успешно удален методом.
 func (r repo) Remove(ctx context.Context, serviceID uint64) (ok bool, err error) {
-	query := sq.Delete("service").PlaceholderFormat(sq.Dollar).Where(sq.Eq{"id": serviceID})
+	query := sq.Delete("services").PlaceholderFormat(sq.Dollar).Where(sq.Eq{"id": serviceID})
 	s, args, err := query.ToSql()
 	if err != nil {
 		return false, err
