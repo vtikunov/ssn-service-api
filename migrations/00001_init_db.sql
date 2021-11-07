@@ -1,0 +1,11 @@
+-- +goose Up
+CREATE TABLE IF NOT EXISTS service (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  is_removed BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP NOT NULL
+);
+
+-- +goose Down
+DROP TABLE IF EXISTS service;

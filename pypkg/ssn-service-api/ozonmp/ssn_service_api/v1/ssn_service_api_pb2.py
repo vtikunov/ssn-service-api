@@ -14,6 +14,7 @@ _sym_db = _symbol_database.Default()
 
 from validate import validate_pb2 as validate_dot_validate__pb2
 from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
+from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -21,9 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='ozonmp.ssn_service_api.v1',
   syntax='proto3',
   serialized_options=_b('ZEgithub.com/ozonmp/ssn-service-api/pkg/ssn-service-api;ssn_service_api'),
-  serialized_pb=_b('\n/ozonmp/ssn_service_api/v1/ssn_service_api.proto\x12\x19ozonmp.ssn_service_api.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\"-\n\x07Service\x12\x0e\n\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n\x04name\x18\x02 \x01(\tR\x04name\"7\n\x16\x43reateServiceV1Request\x12\x1d\n\x04name\x18\x01 \x01(\tB\t\xfa\x42\x06r\x04\x10\x01\x18\x64R\x04name\"8\n\x17\x43reateServiceV1Response\x12\x1d\n\nservice_id\x18\x01 \x01(\x04R\tserviceId\"B\n\x18\x44\x65scribeServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"Y\n\x19\x44\x65scribeServiceV1Response\x12<\n\x07service\x18\x01 \x01(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x07service\"\x17\n\x15ListServicesV1Request\"X\n\x16ListServicesV1Response\x12>\n\x08services\x18\x01 \x03(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x08services\"@\n\x16RemoveServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"/\n\x17RemoveServiceV1Response\x12\x14\n\x05\x66ound\x18\x01 \x01(\x08R\x05\x66ound2\x8a\x05\n\x14SsnServiceApiService\x12\x95\x01\n\x0f\x43reateServiceV1\x12\x31.ozonmp.ssn_service_api.v1.CreateServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.CreateServiceV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\"\x10/api/v1/services:\x01*\x12\xa5\x01\n\x11\x44\x65scribeServiceV1\x12\x33.ozonmp.ssn_service_api.v1.DescribeServiceV1Request\x1a\x34.ozonmp.ssn_service_api.v1.DescribeServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/services/{service_id}\x12\x8f\x01\n\x0eListServicesV1\x12\x30.ozonmp.ssn_service_api.v1.ListServicesV1Request\x1a\x31.ozonmp.ssn_service_api.v1.ListServicesV1Response\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/services\x12\x9f\x01\n\x0fRemoveServiceV1\x12\x31.ozonmp.ssn_service_api.v1.RemoveServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.RemoveServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/services/{service_id}BGZEgithub.com/ozonmp/ssn-service-api/pkg/ssn-service-api;ssn_service_apib\x06proto3')
+  serialized_pb=_b('\n/ozonmp/ssn_service_api/v1/ssn_service_api.proto\x12\x19ozonmp.ssn_service_api.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa3\x01\n\x07Service\x12\x0e\n\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n\x04name\x18\x02 \x01(\tR\x04name\x12\x39\n\ncreated_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x39\n\nupdated_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tupdatedAt\"7\n\x16\x43reateServiceV1Request\x12\x1d\n\x04name\x18\x01 \x01(\tB\t\xfa\x42\x06r\x04\x10\x01\x18\x64R\x04name\"8\n\x17\x43reateServiceV1Response\x12\x1d\n\nservice_id\x18\x01 \x01(\x04R\tserviceId\"B\n\x18\x44\x65scribeServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"Y\n\x19\x44\x65scribeServiceV1Response\x12<\n\x07service\x18\x01 \x01(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x07service\"\x17\n\x15ListServicesV1Request\"X\n\x16ListServicesV1Response\x12>\n\x08services\x18\x01 \x03(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x08services\"@\n\x16RemoveServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"/\n\x17RemoveServiceV1Response\x12\x14\n\x05\x66ound\x18\x01 \x01(\x08R\x05\x66ound2\x8a\x05\n\x14SsnServiceApiService\x12\x95\x01\n\x0f\x43reateServiceV1\x12\x31.ozonmp.ssn_service_api.v1.CreateServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.CreateServiceV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\"\x10/api/v1/services:\x01*\x12\xa5\x01\n\x11\x44\x65scribeServiceV1\x12\x33.ozonmp.ssn_service_api.v1.DescribeServiceV1Request\x1a\x34.ozonmp.ssn_service_api.v1.DescribeServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/services/{service_id}\x12\x8f\x01\n\x0eListServicesV1\x12\x30.ozonmp.ssn_service_api.v1.ListServicesV1Request\x1a\x31.ozonmp.ssn_service_api.v1.ListServicesV1Response\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/services\x12\x9f\x01\n\x0fRemoveServiceV1\x12\x31.ozonmp.ssn_service_api.v1.RemoveServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.RemoveServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/services/{service_id}BGZEgithub.com/ozonmp/ssn-service-api/pkg/ssn-service-api;ssn_service_apib\x06proto3')
   ,
-  dependencies=[validate_dot_validate__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,])
+  dependencies=[validate_dot_validate__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 
 
@@ -49,6 +50,20 @@ _SERVICE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='name', file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='created_at', full_name='ozonmp.ssn_service_api.v1.Service.created_at', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='createdAt', file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='updated_at', full_name='ozonmp.ssn_service_api.v1.Service.updated_at', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='updatedAt', file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -61,8 +76,8 @@ _SERVICE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=133,
-  serialized_end=178,
+  serialized_start=167,
+  serialized_end=330,
 )
 
 
@@ -92,8 +107,8 @@ _CREATESERVICEV1REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=180,
-  serialized_end=235,
+  serialized_start=332,
+  serialized_end=387,
 )
 
 
@@ -123,8 +138,8 @@ _CREATESERVICEV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=237,
-  serialized_end=293,
+  serialized_start=389,
+  serialized_end=445,
 )
 
 
@@ -154,8 +169,8 @@ _DESCRIBESERVICEV1REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=295,
-  serialized_end=361,
+  serialized_start=447,
+  serialized_end=513,
 )
 
 
@@ -185,8 +200,8 @@ _DESCRIBESERVICEV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=363,
-  serialized_end=452,
+  serialized_start=515,
+  serialized_end=604,
 )
 
 
@@ -209,8 +224,8 @@ _LISTSERVICESV1REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=454,
-  serialized_end=477,
+  serialized_start=606,
+  serialized_end=629,
 )
 
 
@@ -240,8 +255,8 @@ _LISTSERVICESV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=479,
-  serialized_end=567,
+  serialized_start=631,
+  serialized_end=719,
 )
 
 
@@ -271,8 +286,8 @@ _REMOVESERVICEV1REQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=569,
-  serialized_end=633,
+  serialized_start=721,
+  serialized_end=785,
 )
 
 
@@ -302,10 +317,12 @@ _REMOVESERVICEV1RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=635,
-  serialized_end=682,
+  serialized_start=787,
+  serialized_end=834,
 )
 
+_SERVICE.fields_by_name['created_at'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_SERVICE.fields_by_name['updated_at'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _DESCRIBESERVICEV1RESPONSE.fields_by_name['service'].message_type = _SERVICE
 _LISTSERVICESV1RESPONSE.fields_by_name['services'].message_type = _SERVICE
 DESCRIPTOR.message_types_by_name['Service'] = _SERVICE
@@ -394,8 +411,8 @@ _SSNSERVICEAPISERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=685,
-  serialized_end=1335,
+  serialized_start=837,
+  serialized_end=1487,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateServiceV1',

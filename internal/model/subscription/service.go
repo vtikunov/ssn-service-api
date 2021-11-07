@@ -1,13 +1,18 @@
 package subscription
 
+import "time"
+
 // Service - экземпляр сервиса.
 //
 // ID: идентификатор.
 //
 // Name: наименование.
 type Service struct {
-	ID   uint64 `db:"id"`
-	Name string `db:"name"`
+	ID        uint64    `db:"id"`
+	Name      string    `db:"name"`
+	IsRemoved bool      `db:"is_removed"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 // EventType - тип события экземпляра сервиса.

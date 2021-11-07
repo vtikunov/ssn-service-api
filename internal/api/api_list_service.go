@@ -29,7 +29,7 @@ func (o *serviceAPI) ListServicesV1(
 
 	log.Debug().Msg("ListServicesV1 - success")
 
-	servicesPb := make([]*pb.Service, len(services))
+	servicesPb := make([]*pb.Service, 0, len(services))
 
 	for _, service := range services {
 		servicesPb = append(servicesPb, convertServiceToPb(service))

@@ -32,15 +32,13 @@ import (
 
 // GrpcServer is gRPC server
 type GrpcServer struct {
-	db        *sqlx.DB
-	batchSize uint
+	db *sqlx.DB
 }
 
 // NewGrpcServer returns gRPC server with supporting of batch listing
-func NewGrpcServer(db *sqlx.DB, batchSize uint) *GrpcServer {
+func NewGrpcServer(db *sqlx.DB) *GrpcServer {
 	return &GrpcServer{
-		db:        db,
-		batchSize: batchSize,
+		db: db,
 	}
 }
 
@@ -107,7 +105,7 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		)),
 	)
 
-	r := repo.NewRepo(s.db, s.batchSize)
+	r := repo.NewRepo(s.db)
 
 	pb.RegisterSsnServiceApiServiceServer(grpcServer, api.NewServiceAPI(r))
 	grpc_prometheus.EnableHandlingTimeHistogram()

@@ -18,10 +18,6 @@ import (
 	"github.com/ozonmp/ssn-service-api/internal/tracer"
 )
 
-var (
-	batchSize uint = 2
-)
-
 func main() {
 	if err := config.ReadConfigYML("config.yml"); err != nil {
 		log.Fatal().Err(err).Msg("Failed init configuration")
@@ -82,7 +78,7 @@ func main() {
 		}
 	}()
 
-	if err := server.NewGrpcServer(db, batchSize).Start(&cfg); err != nil {
+	if err := server.NewGrpcServer(db).Start(&cfg); err != nil {
 		log.Error().Err(err).Msg("Failed creating gRPC server")
 
 		return

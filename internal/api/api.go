@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 	"github.com/prometheus/client_golang/prometheus"
@@ -35,7 +37,9 @@ func NewServiceAPI(r serviceRepo) pb.SsnServiceApiServiceServer {
 
 func convertServiceToPb(service *subscription.Service) *pb.Service {
 	return &pb.Service{
-		Id:   service.ID,
-		Name: service.Name,
+		Id:        service.ID,
+		Name:      service.Name,
+		CreatedAt: timestamppb.New(service.CreatedAt),
+		UpdatedAt: timestamppb.New(service.UpdatedAt),
 	}
 }

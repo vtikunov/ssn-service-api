@@ -44,6 +44,26 @@ func (m *Service) Validate() error {
 
 	// no validation rules for Name
 
+	if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServiceValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServiceValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
