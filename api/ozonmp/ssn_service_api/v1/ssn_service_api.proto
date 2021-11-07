@@ -23,6 +23,13 @@ service SsnServiceApiService {
       get: "/api/v1/services/{service_id}"
     };
   }
+  // UpdateServiceV1 - Update a service
+  rpc UpdateServiceV1(UpdateServiceV1Request) returns (UpdateServiceV1Response) {
+    option (google.api.http) = {
+      put: "/api/v1/services",
+      body: '*'
+    };
+  }
   // ListServicesV1 - Services list
   rpc ListServicesV1(ListServicesV1Request) returns (ListServicesV1Response) {
     option (google.api.http) = {
@@ -40,13 +47,15 @@ service SsnServiceApiService {
 message Service {
   uint64 id  = 1;
   string name = 2;
-  google.protobuf.Timestamp created_at = 3;
-  google.protobuf.Timestamp updated_at = 4;
+  string description = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 
 }
 
 message CreateServiceV1Request {
   string name = 1 [(validate.rules).string={ min_len: 1, max_len: 100 }];
+  string description = 2 [(validate.rules).string={ min_len: 1, max_len: 200 }];
 }
 
 message CreateServiceV1Response {
@@ -61,6 +70,15 @@ message DescribeServiceV1Response {
   Service service = 1;
 }
 
+message UpdateServiceV1Request {
+  uint64 service_id = 1 [(validate.rules).uint64.gt = 0];
+  string name = 2 [(validate.rules).string={ min_len: 1, max_len: 100 }];
+  string description = 3 [(validate.rules).string={ min_len: 1, max_len: 200 }];
+}
+
+message UpdateServiceV1Response {
+}
+
 message ListServicesV1Request {
 }
 
@@ -73,5 +91,5 @@ message RemoveServiceV1Request {
 }
 
 message RemoveServiceV1Response {
-  bool found = 1;
+  bool is_founded = 1;
 }

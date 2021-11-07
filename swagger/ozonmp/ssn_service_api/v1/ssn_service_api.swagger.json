@@ -68,6 +68,37 @@
         "tags": [
           "SsnServiceApiService"
         ]
+      },
+      "put": {
+        "summary": "UpdateServiceV1 - Update a service",
+        "operationId": "SsnServiceApiService_UpdateServiceV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateServiceV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UpdateServiceV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "SsnServiceApiService"
+        ]
       }
     },
     "/api/v1/services/{serviceId}": {
@@ -169,6 +200,9 @@
       "properties": {
         "name": {
           "type": "string"
+        },
+        "description": {
+          "type": "string"
         }
       }
     },
@@ -203,7 +237,7 @@
     "v1RemoveServiceV1Response": {
       "type": "object",
       "properties": {
-        "found": {
+        "isFounded": {
           "type": "boolean"
         }
       }
@@ -218,6 +252,9 @@
         "name": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -227,6 +264,24 @@
           "format": "date-time"
         }
       }
+    },
+    "v1UpdateServiceV1Request": {
+      "type": "object",
+      "properties": {
+        "serviceId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v1UpdateServiceV1Response": {
+      "type": "object"
     }
   }
 }

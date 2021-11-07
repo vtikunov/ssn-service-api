@@ -44,6 +44,8 @@ func (m *Service) Validate() error {
 
 	// no validation rules for Name
 
+	// no validation rules for Description
+
 	if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ServiceValidationError{
@@ -133,6 +135,13 @@ func (m *CreateServiceV1Request) Validate() error {
 		return CreateServiceV1RequestValidationError{
 			field:  "Name",
 			reason: "value length must be between 1 and 100 runes, inclusive",
+		}
+	}
+
+	if l := utf8.RuneCountInString(m.GetDescription()); l < 1 || l > 200 {
+		return CreateServiceV1RequestValidationError{
+			field:  "Description",
+			reason: "value length must be between 1 and 200 runes, inclusive",
 		}
 	}
 
@@ -415,6 +424,161 @@ var _ interface {
 	ErrorName() string
 } = DescribeServiceV1ResponseValidationError{}
 
+// Validate checks the field values on UpdateServiceV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateServiceV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetServiceId() <= 0 {
+		return UpdateServiceV1RequestValidationError{
+			field:  "ServiceId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 100 {
+		return UpdateServiceV1RequestValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 100 runes, inclusive",
+		}
+	}
+
+	if l := utf8.RuneCountInString(m.GetDescription()); l < 1 || l > 200 {
+		return UpdateServiceV1RequestValidationError{
+			field:  "Description",
+			reason: "value length must be between 1 and 200 runes, inclusive",
+		}
+	}
+
+	return nil
+}
+
+// UpdateServiceV1RequestValidationError is the validation error returned by
+// UpdateServiceV1Request.Validate if the designated constraints aren't met.
+type UpdateServiceV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateServiceV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateServiceV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateServiceV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateServiceV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateServiceV1RequestValidationError) ErrorName() string {
+	return "UpdateServiceV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateServiceV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateServiceV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateServiceV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateServiceV1RequestValidationError{}
+
+// Validate checks the field values on UpdateServiceV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateServiceV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// UpdateServiceV1ResponseValidationError is the validation error returned by
+// UpdateServiceV1Response.Validate if the designated constraints aren't met.
+type UpdateServiceV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateServiceV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateServiceV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateServiceV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateServiceV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateServiceV1ResponseValidationError) ErrorName() string {
+	return "UpdateServiceV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateServiceV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateServiceV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateServiceV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateServiceV1ResponseValidationError{}
+
 // Validate checks the field values on ListServicesV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -646,7 +810,7 @@ func (m *RemoveServiceV1Response) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Found
+	// no validation rules for IsFounded
 
 	return nil
 }

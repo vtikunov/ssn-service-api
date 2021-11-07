@@ -23,7 +23,7 @@ func (o *serviceAPI) CreateServiceV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	service := subscription.Service{Name: req.Name, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	service := subscription.Service{Name: req.Name, Description: req.Description, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
 	if err := o.repo.Add(ctx, &service); err != nil {
 		log.Error().Err(err).Msg("CreateServiceV1 -- failed")

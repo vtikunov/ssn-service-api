@@ -30,6 +30,6 @@ func (o *serviceAPI) RemoveServiceV1(
 	log.Debug().Msg("RemoveServiceV1 - success")
 
 	return &pb.RemoveServiceV1Response{
-		Found: ok,
+		IsFounded: ok,
 	}, nil
 }

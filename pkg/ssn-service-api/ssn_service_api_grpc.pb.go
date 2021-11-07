@@ -22,6 +22,8 @@ type SsnServiceApiServiceClient interface {
 	CreateServiceV1(ctx context.Context, in *CreateServiceV1Request, opts ...grpc.CallOption) (*CreateServiceV1Response, error)
 	// DescribeServiceV1 - Describe a service
 	DescribeServiceV1(ctx context.Context, in *DescribeServiceV1Request, opts ...grpc.CallOption) (*DescribeServiceV1Response, error)
+	// UpdateServiceV1 - Update a service
+	UpdateServiceV1(ctx context.Context, in *UpdateServiceV1Request, opts ...grpc.CallOption) (*UpdateServiceV1Response, error)
 	// ListServicesV1 - Services list
 	ListServicesV1(ctx context.Context, in *ListServicesV1Request, opts ...grpc.CallOption) (*ListServicesV1Response, error)
 	// RemoveServiceV1 - Remove a service
@@ -54,6 +56,15 @@ func (c *ssnServiceApiServiceClient) DescribeServiceV1(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *ssnServiceApiServiceClient) UpdateServiceV1(ctx context.Context, in *UpdateServiceV1Request, opts ...grpc.CallOption) (*UpdateServiceV1Response, error) {
+	out := new(UpdateServiceV1Response)
+	err := c.cc.Invoke(ctx, "/ozonmp.ssn_service_api.v1.SsnServiceApiService/UpdateServiceV1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *ssnServiceApiServiceClient) ListServicesV1(ctx context.Context, in *ListServicesV1Request, opts ...grpc.CallOption) (*ListServicesV1Response, error) {
 	out := new(ListServicesV1Response)
 	err := c.cc.Invoke(ctx, "/ozonmp.ssn_service_api.v1.SsnServiceApiService/ListServicesV1", in, out, opts...)
@@ -80,6 +91,8 @@ type SsnServiceApiServiceServer interface {
 	CreateServiceV1(context.Context, *CreateServiceV1Request) (*CreateServiceV1Response, error)
 	// DescribeServiceV1 - Describe a service
 	DescribeServiceV1(context.Context, *DescribeServiceV1Request) (*DescribeServiceV1Response, error)
+	// UpdateServiceV1 - Update a service
+	UpdateServiceV1(context.Context, *UpdateServiceV1Request) (*UpdateServiceV1Response, error)
 	// ListServicesV1 - Services list
 	ListServicesV1(context.Context, *ListServicesV1Request) (*ListServicesV1Response, error)
 	// RemoveServiceV1 - Remove a service
@@ -96,6 +109,9 @@ func (UnimplementedSsnServiceApiServiceServer) CreateServiceV1(context.Context, 
 }
 func (UnimplementedSsnServiceApiServiceServer) DescribeServiceV1(context.Context, *DescribeServiceV1Request) (*DescribeServiceV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DescribeServiceV1 not implemented")
+}
+func (UnimplementedSsnServiceApiServiceServer) UpdateServiceV1(context.Context, *UpdateServiceV1Request) (*UpdateServiceV1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateServiceV1 not implemented")
 }
 func (UnimplementedSsnServiceApiServiceServer) ListServicesV1(context.Context, *ListServicesV1Request) (*ListServicesV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServicesV1 not implemented")
@@ -152,6 +168,24 @@ func _SsnServiceApiService_DescribeServiceV1_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SsnServiceApiService_UpdateServiceV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateServiceV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SsnServiceApiServiceServer).UpdateServiceV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ozonmp.ssn_service_api.v1.SsnServiceApiService/UpdateServiceV1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SsnServiceApiServiceServer).UpdateServiceV1(ctx, req.(*UpdateServiceV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SsnServiceApiService_ListServicesV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListServicesV1Request)
 	if err := dec(in); err != nil {
@@ -202,6 +236,10 @@ var SsnServiceApiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DescribeServiceV1",
 			Handler:    _SsnServiceApiService_DescribeServiceV1_Handler,
+		},
+		{
+			MethodName: "UpdateServiceV1",
+			Handler:    _SsnServiceApiService_UpdateServiceV1_Handler,
 		},
 		{
 			MethodName: "ListServicesV1",

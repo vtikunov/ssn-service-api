@@ -21,6 +21,7 @@ var (
 type serviceRepo interface {
 	Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error)
 	Add(ctx context.Context, service *subscription.Service) error
+	Update(ctx context.Context, service *subscription.Service) error
 	List(ctx context.Context) ([]*subscription.Service, error)
 	Remove(ctx context.Context, serviceID uint64) (ok bool, err error)
 }
@@ -37,9 +38,10 @@ func NewServiceAPI(r serviceRepo) pb.SsnServiceApiServiceServer {
 
 func convertServiceToPb(service *subscription.Service) *pb.Service {
 	return &pb.Service{
-		Id:        service.ID,
-		Name:      service.Name,
-		CreatedAt: timestamppb.New(service.CreatedAt),
-		UpdatedAt: timestamppb.New(service.UpdatedAt),
+		Id:          service.ID,
+		Name:        service.Name,
+		Description: service.Description,
+		CreatedAt:   timestamppb.New(service.CreatedAt),
+		UpdatedAt:   timestamppb.New(service.UpdatedAt),
 	}
 }

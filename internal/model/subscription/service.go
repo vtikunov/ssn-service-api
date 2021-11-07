@@ -7,16 +7,25 @@ import "time"
 // ID: идентификатор.
 //
 // Name: наименование.
+//
+// Description: описание.
+//
+// IsRemoved: флаг удаленного сервиса.
+//
 type Service struct {
-	ID        uint64    `db:"id"`
-	Name      string    `db:"name"`
-	IsRemoved bool      `db:"is_removed"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID          uint64    `db:"id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	IsRemoved   bool      `db:"is_removed"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 // EventType - тип события экземпляра сервиса.
 type EventType string
+
+// EventSubType - тип события экземпляра сервиса.
+type EventSubType string
 
 // EventStatus - статус события экземпляра сервиса.
 type EventStatus string
