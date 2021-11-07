@@ -58,7 +58,7 @@ services:
     networks:
       - ssnnw
     volumes:
-      - ./data/pgdata:/var/lib/postgresql/data
+      - ./_data/pgdata:/var/lib/postgresql/data
       - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
 
   zookeeper:
@@ -171,7 +171,7 @@ services:
     networks:
       - ssnnw
     volumes:
-      - "./data/grafana:/var/lib/grafana"
+      - "./_data/grafana:/var/lib/grafana"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2

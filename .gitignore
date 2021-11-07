@@ -4,7 +4,7 @@
 .venv
 swagger/
 bin/
-data/
+_data/
 main
 bin
 
