@@ -102,7 +102,7 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 		})
 
 		for i, eventForService := range eventsForService {
-			if err := p.sender.Send(ctx, &eventForService); err != nil {
+			if err := p.sender.Send(ctx, &eventsForService[i]); err != nil {
 				log.Printf("producer: failed to send event with ID %v - %v", eventForService.ID, err)
 
 				for ; i < len(eventsForService); i++ {

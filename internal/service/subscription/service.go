@@ -45,6 +45,7 @@ func (s *serviceService) Describe(ctx context.Context, serviceID uint64) (*subsc
 }
 
 // Add - добавляет сервис.
+// nolint:dupl
 func (s *serviceService) Add(ctx context.Context, service *subscription.Service) error {
 	var addErr error
 
@@ -72,6 +73,7 @@ func (s *serviceService) Add(ctx context.Context, service *subscription.Service)
 }
 
 // Update - обновляет сервис.
+// nolint:dupl
 func (s *serviceService) Update(ctx context.Context, service *subscription.Service) error {
 	var updErr error
 

@@ -88,7 +88,7 @@ func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx
 
 	rows, err := execer.QueryContext(ctx, s, args...)
 	defer func() {
-		if err := rows.Close(); err != nil {
+		if errCl := rows.Close(); errCl != nil {
 			log.Error().Err(err)
 		}
 	}()

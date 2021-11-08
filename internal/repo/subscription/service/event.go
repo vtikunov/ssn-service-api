@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/rs/zerolog/log"
-
 	"google.golang.org/protobuf/encoding/protojson"
 
 	sq "github.com/Masterminds/squirrel"
@@ -19,6 +18,10 @@ import (
 // ErrNoEvent - ошибка отсутствия события в репозитории.
 var ErrNoEvent = errors.New("event is not exists")
 
+// EventRepo - интерфейс репозитория событий.
+//
+// Add: добавляет событие в репозиторий.
+//
 type EventRepo interface {
 	Add(ctx context.Context, event *subscription.ServiceEvent, tx repo.QueryerExecer) error
 }
@@ -62,7 +65,7 @@ func (r *eventRepo) Add(ctx context.Context, event *subscription.ServiceEvent, t
 
 	rows, err := execer.QueryContext(ctx, s, args...)
 	defer func() {
-		if err := rows.Close(); err != nil {
+		if errCl := rows.Close(); errCl != nil {
 			log.Error().Err(err)
 		}
 	}()

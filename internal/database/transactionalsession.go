@@ -14,6 +14,7 @@ type transactionalSession struct {
 	db *sqlx.DB
 }
 
+// NewTransactionalSession - создаёт экзекьютора транзакций.
 func NewTransactionalSession(db *sqlx.DB) *transactionalSession {
 	return &transactionalSession{
 		db: db,

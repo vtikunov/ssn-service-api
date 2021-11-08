@@ -28,6 +28,7 @@ type EventRepo interface {
 	Remove(ctx context.Context, eventIDs []uint64, tx QueryerExecer) error
 }
 
+// QueryerExecer - универсальный интерфейс для обычного соединения и соединения-транзакции.
 type QueryerExecer interface {
 	sqlx.Execer
 	sqlx.Queryer
