@@ -870,3 +870,91 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RemoveServiceV1ResponseValidationError{}
+
+// Validate checks the field values on ServiceEventPayload with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ServiceEventPayload) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetServiceId() <= 0 {
+		return ServiceEventPayloadValidationError{
+			field:  "ServiceId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if l := utf8.RuneCountInString(m.GetName()); l < 1 || l > 100 {
+		return ServiceEventPayloadValidationError{
+			field:  "Name",
+			reason: "value length must be between 1 and 100 runes, inclusive",
+		}
+	}
+
+	if l := utf8.RuneCountInString(m.GetDescription()); l < 1 || l > 200 {
+		return ServiceEventPayloadValidationError{
+			field:  "Description",
+			reason: "value length must be between 1 and 200 runes, inclusive",
+		}
+	}
+
+	return nil
+}
+
+// ServiceEventPayloadValidationError is the validation error returned by
+// ServiceEventPayload.Validate if the designated constraints aren't met.
+type ServiceEventPayloadValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ServiceEventPayloadValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ServiceEventPayloadValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ServiceEventPayloadValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ServiceEventPayloadValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ServiceEventPayloadValidationError) ErrorName() string {
+	return "ServiceEventPayloadValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ServiceEventPayloadValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sServiceEventPayload.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ServiceEventPayloadValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ServiceEventPayloadValidationError{}

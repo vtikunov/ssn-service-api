@@ -12,8 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ozonmp/ssn-service-api/internal/database"
-
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -28,8 +26,10 @@ import (
 
 	"github.com/ozonmp/ssn-service-api/internal/api"
 	"github.com/ozonmp/ssn-service-api/internal/config"
-	"github.com/ozonmp/ssn-service-api/internal/repo"
+	"github.com/ozonmp/ssn-service-api/internal/database"
 	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
+
+	servicerepo "github.com/ozonmp/ssn-service-api/internal/repo/subscription/service"
 	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 )
 
@@ -91,7 +91,11 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
-	defer l.Close()
+	defer func() {
+		if err := l.Close(); err != nil {
+			log.Debug().Err(err).Msg("failed close listen")
+		}
+	}()
 
 	grpcServer := grpc.NewServer(
 		grpc.KeepaliveParams(keepalive.ServerParameters{
@@ -108,8 +112,8 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		)),
 	)
 
-	r := repo.NewServiceRepo(s.db)
-	evr := repo.NewEventRepo(s.db)
+	r := servicerepo.NewServiceRepo(s.db)
+	evr := servicerepo.NewEventRepo(s.db)
 	txs := database.NewTransactionalSession(s.db)
 	srv := subscription.NewServiceService(r, evr, txs)
 

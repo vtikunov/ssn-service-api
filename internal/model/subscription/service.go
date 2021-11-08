@@ -24,9 +24,6 @@ type Service struct {
 // EventType - тип события экземпляра сервиса.
 type EventType string
 
-// EventSubType - тип события экземпляра сервиса.
-type EventSubType string
-
 // EventStatus - статус события экземпляра сервиса.
 type EventStatus string
 
@@ -65,9 +62,10 @@ const (
 //
 // Service: экземпляр сервиса (Service).
 type ServiceEvent struct {
-	ID        uint64
-	ServiceID uint64
-	Type      EventType
-	Status    EventStatus
-	Service   *Service
+	ID        uint64      `db:"id"`
+	ServiceID uint64      `db:"service_id"`
+	Type      EventType   `db:"type"`
+	Status    EventStatus `db:"status"`
+	Service   *Service    `db:"payload"`
+	UpdatedAt time.Time   `db:"updated_at"`
 }

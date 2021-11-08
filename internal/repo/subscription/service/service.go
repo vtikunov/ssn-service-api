@@ -1,9 +1,13 @@
-package repo
+package servicerepo
 
 import (
 	"context"
 	"database/sql"
 	"errors"
+
+	"github.com/rs/zerolog/log"
+
+	"github.com/ozonmp/ssn-service-api/internal/repo"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 
@@ -28,24 +32,24 @@ var ErrNoService = errors.New("service is not exists")
 // Возвращает true если сервис существовал в репозитории и успешно удален методом.
 //
 type ServiceRepo interface {
-	Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error)
-	Add(ctx context.Context, service *subscription.Service) error
-	Update(ctx context.Context, service *subscription.Service) error
-	List(ctx context.Context) ([]*subscription.Service, error)
-	Remove(ctx context.Context, serviceID uint64) (ok bool, err error)
+	Describe(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (*subscription.Service, error)
+	Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
+	Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
+	List(ctx context.Context, tx repo.QueryerExecer) ([]*subscription.Service, error)
+	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error)
 }
 
 type serviceRepo struct {
-	db QueryerExecer
+	db repo.QueryerExecer
 }
 
 // NewServiceRepo создаёт инстанс репозитория.
-func NewServiceRepo(db QueryerExecer) *serviceRepo {
+func NewServiceRepo(db repo.QueryerExecer) *serviceRepo {
 	return &serviceRepo{db: db}
 }
 
 // Describe - возвращает из репозитория сервис по его ID.
-func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx QueryerExecer) (*subscription.Service, error) {
+func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (*subscription.Service, error) {
 	execer := r.getExecer(tx)
 
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
@@ -69,15 +73,26 @@ func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx Queryer
 }
 
 // Add - добавляет в репозиторий сервис.
-func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx QueryerExecer) error {
+func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error {
 	execer := r.getExecer(tx)
 
 	query := sq.Insert("services").PlaceholderFormat(sq.Dollar)
 	query = query.Columns("name", "description", "created_at", "updated_at")
 	query = query.Values(service.Name, service.Description, service.CreatedAt, service.UpdatedAt)
-	query = query.Suffix("RETURNING id").RunWith(execer)
+	query = query.Suffix("RETURNING id")
 
-	rows, err := query.QueryContext(ctx)
+	s, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	rows, err := execer.QueryContext(ctx, s, args...)
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Error().Err(err)
+		}
+	}()
+
 	if err != nil {
 		return err
 	}
@@ -96,7 +111,7 @@ func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx
 }
 
 // Update - обновляет сервис.
-func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service, tx QueryerExecer) error {
+func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error {
 	execer := r.getExecer(tx)
 
 	query := sq.Update("services").PlaceholderFormat(sq.Dollar)
@@ -130,7 +145,7 @@ func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service,
 }
 
 // List - возвращает постраничный список сервисов.
-func (r *serviceRepo) List(ctx context.Context, tx QueryerExecer) ([]*subscription.Service, error) {
+func (r *serviceRepo) List(ctx context.Context, tx repo.QueryerExecer) ([]*subscription.Service, error) {
 	execer := r.getExecer(tx)
 
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
@@ -160,7 +175,7 @@ func (r *serviceRepo) List(ctx context.Context, tx QueryerExecer) ([]*subscripti
 
 // Remove - удаляет из репозитория сервис.
 // Возвращает true если сервис существовал в репозитории и успешно удален методом.
-func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx QueryerExecer) (ok bool, err error) {
+func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error) {
 	execer := r.getExecer(tx)
 
 	query := sq.Update("services").PlaceholderFormat(sq.Dollar)
@@ -187,7 +202,7 @@ func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx QueryerEx
 	return num > 0, nil
 }
 
-func (r *serviceRepo) getExecer(tx QueryerExecer) QueryerExecer {
+func (r *serviceRepo) getExecer(tx repo.QueryerExecer) repo.QueryerExecer {
 	if tx != nil {
 		return tx
 	}

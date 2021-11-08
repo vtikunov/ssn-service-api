@@ -6,19 +6,17 @@ import (
 	"net"
 	"testing"
 
-	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
-
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/golang/mock/gomock"
-	"github.com/ozonmp/ssn-service-api/internal/mocks"
-
-	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
+
+	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
+
+	apimocks "github.com/ozonmp/ssn-service-api/internal/mocks/api"
+	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 )
 
 func dialer(t *testing.T) func(context.Context, string) (net.Conn, error) {
@@ -27,9 +25,11 @@ func dialer(t *testing.T) func(context.Context, string) (net.Conn, error) {
 	server := grpc.NewServer()
 
 	ctrl := gomock.NewController(t)
-	repo := mocks.NewMockServiceRepo(ctrl)
+	repo := apimocks.NewMockServiceRepo(ctrl)
+	eventRepo := apimocks.NewMockEventRepo(ctrl)
+	tsx := apimocks.NewMockTransactionalSession(ctrl)
 
-	pb.RegisterSsnServiceApiServiceServer(server, NewServiceAPI(subscription.NewServiceService(repo)))
+	pb.RegisterSsnServiceApiServiceServer(server, NewServiceAPI(subscription.NewServiceService(repo, eventRepo, tsx)))
 
 	go func() {
 		if err := server.Serve(listener); err != nil {

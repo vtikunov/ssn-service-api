@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"context"
+	"time"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/repo"
@@ -16,7 +17,7 @@ type serviceRepo interface {
 }
 
 type eventRepo interface {
-	Add(ctx context.Context, event []subscription.ServiceEvent, tx repo.QueryerExecer) error
+	Add(ctx context.Context, event *subscription.ServiceEvent, tx repo.QueryerExecer) error
 }
 
 type transactionalSession interface {
@@ -54,12 +55,12 @@ func (s *serviceService) Add(ctx context.Context, service *subscription.Service)
 			return addErr
 		}
 
-		return s.eventRepo.Add(ctx, []subscription.ServiceEvent{
-			{
-				ServiceID: service.ID,
-				Type:      subscription.Created,
-				Service:   service,
-			},
+		return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
+			ServiceID: service.ID,
+			Type:      subscription.Created,
+			Status:    subscription.Deferred,
+			Service:   service,
+			UpdatedAt: time.Now(),
 		}, tx)
 	})
 
@@ -81,12 +82,12 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 			return updErr
 		}
 
-		return s.eventRepo.Add(ctx, []subscription.ServiceEvent{
-			{
-				ServiceID: service.ID,
-				Type:      subscription.Updated,
-				Service:   service,
-			},
+		return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
+			ServiceID: service.ID,
+			Type:      subscription.Updated,
+			Status:    subscription.Deferred,
+			Service:   service,
+			UpdatedAt: time.Now(),
 		}, tx)
 	})
 
@@ -116,11 +117,11 @@ func (s serviceService) Remove(ctx context.Context, serviceID uint64) (ok bool, 
 		}
 
 		if rmvOk {
-			return s.eventRepo.Add(ctx, []subscription.ServiceEvent{
-				{
-					ServiceID: serviceID,
-					Type:      subscription.Removed,
-				},
+			return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
+				ServiceID: serviceID,
+				Type:      subscription.Removed,
+				Status:    subscription.Deferred,
+				UpdatedAt: time.Now(),
 			}, tx)
 		}
 

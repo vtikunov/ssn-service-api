@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='ozonmp.ssn_service_api.v1',
   syntax='proto3',
   serialized_options=_b('ZEgithub.com/ozonmp/ssn-service-api/pkg/ssn-service-api;ssn_service_api'),
-  serialized_pb=_b('\n/ozonmp/ssn_service_api/v1/ssn_service_api.proto\x12\x19ozonmp.ssn_service_api.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc5\x01\n\x07Service\x12\x0e\n\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n\x04name\x18\x02 \x01(\tR\x04name\x12 \n\x0b\x64\x65scription\x18\x03 \x01(\tR\x0b\x64\x65scription\x12\x39\n\ncreated_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x39\n\nupdated_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tupdatedAt\"e\n\x16\x43reateServiceV1Request\x12\x1d\n\x04name\x18\x01 \x01(\tB\t\xfa\x42\x06r\x04\x10\x01\x18\x64R\x04name\x12,\n\x0b\x64\x65scription\x18\x02 \x01(\tB\n\xfa\x42\x07r\x05\x10\x01\x18\xc8\x01R\x0b\x64\x65scription\"8\n\x17\x43reateServiceV1Response\x12\x1d\n\nservice_id\x18\x01 \x01(\x04R\tserviceId\"B\n\x18\x44\x65scribeServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"Y\n\x19\x44\x65scribeServiceV1Response\x12<\n\x07service\x18\x01 \x01(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x07service\"\x8d\x01\n\x16UpdateServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\x12\x1d\n\x04name\x18\x02 \x01(\tB\t\xfa\x42\x06r\x04\x10\x01\x18\x64R\x04name\x12,\n\x0b\x64\x65scription\x18\x03 \x01(\tB\n\xfa\x42\x07r\x05\x10\x01\x18\xc8\x01R\x0b\x64\x65scription\"\x19\n\x17UpdateServiceV1Response\"\x17\n\x15ListServicesV1Request\"X\n\x16ListServicesV1Response\x12>\n\x08services\x18\x01 \x03(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x08services\"@\n\x16RemoveServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"8\n\x17RemoveServiceV1Response\x12\x1d\n\nis_founded\x18\x01 \x01(\x08R\tisFounded2\xa2\x06\n\x14SsnServiceApiService\x12\x95\x01\n\x0f\x43reateServiceV1\x12\x31.ozonmp.ssn_service_api.v1.CreateServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.CreateServiceV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\"\x10/api/v1/services:\x01*\x12\xa5\x01\n\x11\x44\x65scribeServiceV1\x12\x33.ozonmp.ssn_service_api.v1.DescribeServiceV1Request\x1a\x34.ozonmp.ssn_service_api.v1.DescribeServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/services/{service_id}\x12\x95\x01\n\x0fUpdateServiceV1\x12\x31.ozonmp.ssn_service_api.v1.UpdateServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.UpdateServiceV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\x1a\x10/api/v1/services:\x01*\x12\x8f\x01\n\x0eListServicesV1\x12\x30.ozonmp.ssn_service_api.v1.ListServicesV1Request\x1a\x31.ozonmp.ssn_service_api.v1.ListServicesV1Response\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/services\x12\x9f\x01\n\x0fRemoveServiceV1\x12\x31.ozonmp.ssn_service_api.v1.RemoveServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.RemoveServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/services/{service_id}BGZEgithub.com/ozonmp/ssn-service-api/pkg/ssn-service-api;ssn_service_apib\x06proto3')
+  serialized_pb=_b('\n/ozonmp/ssn_service_api/v1/ssn_service_api.proto\x12\x19ozonmp.ssn_service_api.v1\x1a\x17validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc5\x01\n\x07Service\x12\x0e\n\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n\x04name\x18\x02 \x01(\tR\x04name\x12 \n\x0b\x64\x65scription\x18\x03 \x01(\tR\x0b\x64\x65scription\x12\x39\n\ncreated_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x39\n\nupdated_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\tupdatedAt\"e\n\x16\x43reateServiceV1Request\x12\x1d\n\x04name\x18\x01 \x01(\tB\t\xfa\x42\x06r\x04\x10\x01\x18\x64R\x04name\x12,\n\x0b\x64\x65scription\x18\x02 \x01(\tB\n\xfa\x42\x07r\x05\x10\x01\x18\xc8\x01R\x0b\x64\x65scription\"8\n\x17\x43reateServiceV1Response\x12\x1d\n\nservice_id\x18\x01 \x01(\x04R\tserviceId\"B\n\x18\x44\x65scribeServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"Y\n\x19\x44\x65scribeServiceV1Response\x12<\n\x07service\x18\x01 \x01(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x07service\"\x8d\x01\n\x16UpdateServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\x12\x1d\n\x04name\x18\x02 \x01(\tB\t\xfa\x42\x06r\x04\x10\x01\x18\x64R\x04name\x12,\n\x0b\x64\x65scription\x18\x03 \x01(\tB\n\xfa\x42\x07r\x05\x10\x01\x18\xc8\x01R\x0b\x64\x65scription\"\x19\n\x17UpdateServiceV1Response\"\x17\n\x15ListServicesV1Request\"X\n\x16ListServicesV1Response\x12>\n\x08services\x18\x01 \x03(\x0b\x32\".ozonmp.ssn_service_api.v1.ServiceR\x08services\"@\n\x16RemoveServiceV1Request\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\"8\n\x17RemoveServiceV1Response\x12\x1d\n\nis_founded\x18\x01 \x01(\x08R\tisFounded\"\x8a\x01\n\x13ServiceEventPayload\x12&\n\nservice_id\x18\x01 \x01(\x04\x42\x07\xfa\x42\x04\x32\x02 \x00R\tserviceId\x12\x1d\n\x04name\x18\x02 \x01(\tB\t\xfa\x42\x06r\x04\x10\x01\x18\x64R\x04name\x12,\n\x0b\x64\x65scription\x18\x03 \x01(\tB\n\xfa\x42\x07r\x05\x10\x01\x18\xc8\x01R\x0b\x64\x65scription2\xa2\x06\n\x14SsnServiceApiService\x12\x95\x01\n\x0f\x43reateServiceV1\x12\x31.ozonmp.ssn_service_api.v1.CreateServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.CreateServiceV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\"\x10/api/v1/services:\x01*\x12\xa5\x01\n\x11\x44\x65scribeServiceV1\x12\x33.ozonmp.ssn_service_api.v1.DescribeServiceV1Request\x1a\x34.ozonmp.ssn_service_api.v1.DescribeServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/services/{service_id}\x12\x95\x01\n\x0fUpdateServiceV1\x12\x31.ozonmp.ssn_service_api.v1.UpdateServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.UpdateServiceV1Response\"\x1b\x82\xd3\xe4\x93\x02\x15\x1a\x10/api/v1/services:\x01*\x12\x8f\x01\n\x0eListServicesV1\x12\x30.ozonmp.ssn_service_api.v1.ListServicesV1Request\x1a\x31.ozonmp.ssn_service_api.v1.ListServicesV1Response\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/services\x12\x9f\x01\n\x0fRemoveServiceV1\x12\x31.ozonmp.ssn_service_api.v1.RemoveServiceV1Request\x1a\x32.ozonmp.ssn_service_api.v1.RemoveServiceV1Response\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/services/{service_id}BGZEgithub.com/ozonmp/ssn-service-api/pkg/ssn-service-api;ssn_service_apib\x06proto3')
   ,
   dependencies=[validate_dot_validate__pb2.DESCRIPTOR,google_dot_api_dot_annotations__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -404,6 +404,51 @@ _REMOVESERVICEV1RESPONSE = _descriptor.Descriptor(
   serialized_end=1094,
 )
 
+
+_SERVICEEVENTPAYLOAD = _descriptor.Descriptor(
+  name='ServiceEventPayload',
+  full_name='ozonmp.ssn_service_api.v1.ServiceEventPayload',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='service_id', full_name='ozonmp.ssn_service_api.v1.ServiceEventPayload.service_id', index=0,
+      number=1, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\372B\0042\002 \000'), json_name='serviceId', file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='name', full_name='ozonmp.ssn_service_api.v1.ServiceEventPayload.name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\372B\006r\004\020\001\030d'), json_name='name', file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='description', full_name='ozonmp.ssn_service_api.v1.ServiceEventPayload.description', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=_b('\372B\007r\005\020\001\030\310\001'), json_name='description', file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1097,
+  serialized_end=1235,
+)
+
 _SERVICE.fields_by_name['created_at'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _SERVICE.fields_by_name['updated_at'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _DESCRIBESERVICEV1RESPONSE.fields_by_name['service'].message_type = _SERVICE
@@ -419,6 +464,7 @@ DESCRIPTOR.message_types_by_name['ListServicesV1Request'] = _LISTSERVICESV1REQUE
 DESCRIPTOR.message_types_by_name['ListServicesV1Response'] = _LISTSERVICESV1RESPONSE
 DESCRIPTOR.message_types_by_name['RemoveServiceV1Request'] = _REMOVESERVICEV1REQUEST
 DESCRIPTOR.message_types_by_name['RemoveServiceV1Response'] = _REMOVESERVICEV1RESPONSE
+DESCRIPTOR.message_types_by_name['ServiceEventPayload'] = _SERVICEEVENTPAYLOAD
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Service = _reflection.GeneratedProtocolMessageType('Service', (_message.Message,), dict(
@@ -498,6 +544,13 @@ RemoveServiceV1Response = _reflection.GeneratedProtocolMessageType('RemoveServic
   ))
 _sym_db.RegisterMessage(RemoveServiceV1Response)
 
+ServiceEventPayload = _reflection.GeneratedProtocolMessageType('ServiceEventPayload', (_message.Message,), dict(
+  DESCRIPTOR = _SERVICEEVENTPAYLOAD,
+  __module__ = 'ozonmp.ssn_service_api.v1.ssn_service_api_pb2'
+  # @@protoc_insertion_point(class_scope:ozonmp.ssn_service_api.v1.ServiceEventPayload)
+  ))
+_sym_db.RegisterMessage(ServiceEventPayload)
+
 
 DESCRIPTOR._options = None
 _CREATESERVICEV1REQUEST.fields_by_name['name']._options = None
@@ -507,6 +560,9 @@ _UPDATESERVICEV1REQUEST.fields_by_name['service_id']._options = None
 _UPDATESERVICEV1REQUEST.fields_by_name['name']._options = None
 _UPDATESERVICEV1REQUEST.fields_by_name['description']._options = None
 _REMOVESERVICEV1REQUEST.fields_by_name['service_id']._options = None
+_SERVICEEVENTPAYLOAD.fields_by_name['service_id']._options = None
+_SERVICEEVENTPAYLOAD.fields_by_name['name']._options = None
+_SERVICEEVENTPAYLOAD.fields_by_name['description']._options = None
 
 _SSNSERVICEAPISERVICE = _descriptor.ServiceDescriptor(
   name='SsnServiceApiService',
@@ -514,8 +570,8 @@ _SSNSERVICEAPISERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1097,
-  serialized_end=1899,
+  serialized_start=1238,
+  serialized_end=2040,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateServiceV1',

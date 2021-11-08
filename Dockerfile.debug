@@ -1,6 +1,6 @@
 # Builder
 
-FROM golang:1.16-alpine AS builder
+FROM golang:1.17-alpine AS builder
 RUN apk add --update make git protoc protobuf protobuf-dev curl
 
 ARG GITHUB_PATH=github.com/ozonmp/ssn-service-api

@@ -9,12 +9,13 @@ import (
 	"testing"
 	"time"
 
-	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/app/retranslator"
-
 	"github.com/golang/mock/gomock"
-	"github.com/ozonmp/ssn-service-api/internal/mocks"
-	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
+
+	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/app/retranslator"
+	appmocks "github.com/ozonmp/ssn-service-api/internal/mocks/app"
 )
 
 type initData struct {
@@ -37,8 +38,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	ctrl := gomock.NewController(t)
 	ctx := context.Background()
-	repo := mocks.NewMockEventRepo(ctrl)
-	sender := mocks.NewMockEventSender(ctrl)
+	repo := appmocks.NewMockEventRepo(ctrl)
+	sender := appmocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
 	//nolint:dupl
@@ -177,8 +178,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	ctrl := gomock.NewController(t)
 	ctx, cancelCtx := context.WithCancel(context.Background())
-	repo := mocks.NewMockEventRepo(ctrl)
-	sender := mocks.NewMockEventSender(ctrl)
+	repo := appmocks.NewMockEventRepo(ctrl)
+	sender := appmocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
 	//nolint:dupl
