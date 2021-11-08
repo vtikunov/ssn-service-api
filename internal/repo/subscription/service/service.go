@@ -157,13 +157,13 @@ func (r *serviceRepo) List(ctx context.Context, tx repo.QueryerExecer) ([]*subsc
 		return nil, err
 	}
 
-	res := make([]*subscription.Service, 0)
 	rows, err := execer.QueryContext(ctx, s, args...)
 
 	if err != nil {
 		return nil, err
 	}
 
+	res := make([]*subscription.Service, 0)
 	err = sqlx.StructScan(rows, &res)
 
 	if err != nil {

@@ -3,6 +3,7 @@ module github.com/ozonmp/ssn-service-api
 go 1.16
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/Masterminds/squirrel v1.5.1
 	github.com/gammazero/workerpool v1.1.2
