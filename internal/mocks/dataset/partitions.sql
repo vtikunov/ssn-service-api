@@ -22,7 +22,7 @@ $$;
 
 CREATE FUNCTION partition_for_service_events() RETURNS TRIGGER AS $$
 BEGIN
-    EXECUTE 'INSERT INTO ' || format( 'service_events_p_%s', 1 + ( NEW.service_id - 1 ) / 5 ) || ' VALUES ($1.*)' USING NEW;
+    EXECUTE 'INSERT INTO ' || format( 'service_events_p_%s', 1 + div(NEW.service_id - 1, 5)) || ' VALUES ($1.*)' USING NEW;
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;

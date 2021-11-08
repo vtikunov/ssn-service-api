@@ -2,9 +2,7 @@ package servicerepo
 
 import (
 	"context"
-	"errors"
 
-	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	sq "github.com/Masterminds/squirrel"
@@ -14,9 +12,6 @@ import (
 
 	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 )
-
-// ErrNoEvent - ошибка отсутствия события в репозитории.
-var ErrNoEvent = errors.New("event is not exists")
 
 // EventRepo - интерфейс репозитория событий.
 //
@@ -56,35 +51,19 @@ func (r *eventRepo) Add(ctx context.Context, event *subscription.ServiceEvent, t
 	query := sq.Insert("service_events").PlaceholderFormat(sq.Dollar)
 	query = query.Columns("service_id", "type", "status", "payload", "updated_at")
 	query = query.Values(event.ServiceID, event.Type, event.Status, payload, event.UpdatedAt)
-	query = query.Suffix("RETURNING id")
 
 	s, args, err := query.ToSql()
 	if err != nil {
 		return err
 	}
 
-	rows, err := execer.QueryContext(ctx, s, args...)
-	defer func() {
-		if errCl := rows.Close(); errCl != nil {
-			log.Error().Err(err)
-		}
-	}()
+	_, err = execer.ExecContext(ctx, s, args...)
 
 	if err != nil {
 		return err
 	}
 
-	if rows.Next() {
-		err = rows.Scan(&event.ID)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	return ErrNoEvent
+	return nil
 }
 
 func (r *eventRepo) getExecer(tx repo.QueryerExecer) repo.QueryerExecer {

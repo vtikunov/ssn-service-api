@@ -27,10 +27,7 @@ func Test_EventAddSQL(t *testing.T) {
 	r, dbMock := setupEventsRepo()
 	ctx := context.Background()
 
-	rows := sqlmock.NewRows([]string{"id"}).
-		AddRow(1)
-
-	dbMock.ExpectQuery(`INSERT INTO service_events (service_id,type,status,payload,updated_at) VALUES ($1,$2,$3,$4,$5) RETURNING id`).
+	dbMock.ExpectExec(`INSERT INTO service_events (service_id,type,status,payload,updated_at) VALUES ($1,$2,$3,$4,$5)`).
 		WithArgs(
 			1,
 			subscription.Created,
@@ -38,7 +35,7 @@ func Test_EventAddSQL(t *testing.T) {
 			sqlmock.AnyArg(), // TODO В debug режиме такое проходит, а в простом тесте падает по панике: []byte(`{"serviceId":"1", "name":"Test", "description":"Desc test"}`)
 			time.Date(2021, 5, 1, 11, 0, 0, 0, time.UTC),
 		).
-		WillReturnRows(rows)
+		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	err := r.Add(ctx, &subscription.ServiceEvent{
 		ServiceID: 1,
