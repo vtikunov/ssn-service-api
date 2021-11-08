@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/app/repo"
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
@@ -16,14 +17,12 @@ type Consumer interface {
 }
 
 type eventRepoLockUnlocker interface {
-	LockExceptLockedByServiceID(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error)
-	LockByServiceID(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error)
-	Unlock(eventIDs []uint64) error
+	Lock(ctx context.Context, n uint64, tx repo.QueryerExecer) ([]subscription.ServiceEvent, error)
+	Unlock(ctx context.Context, eventIDs []uint64, tx repo.QueryerExecer) error
 }
 
 type channelLocator interface {
 	GetMainEventsWriteChannel() chan<- []subscription.ServiceEvent
-	GetEventsServiceIDWriteChannel(serviceID uint64) chan<- []subscription.ServiceEvent
 }
 
 type consumer struct {
@@ -90,27 +89,14 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 				case <-c.stopChannel:
 					return
 				case <-timeout.C:
-					events, err := c.eventRepo.LockExceptLockedByServiceID(ctx, c.batchSize)
+					events, err := c.eventRepo.Lock(ctx, c.batchSize, nil)
 					if err != nil {
 						log.Printf("consumer: failed to lock events - %v", err)
 
 						continue
 					}
 
-					for _, event := range events {
-						eventsByServiceID, err := c.eventRepo.LockByServiceID(ctx, event.ServiceID)
-						if err != nil {
-							log.Printf("consumer: failed to lock events by service ID - %v", err)
-							if err := c.eventRepo.Unlock([]uint64{event.ID}); err != nil {
-								log.Printf("consumer: failed to unlock events after fail lock by service ID - %v", err)
-							}
-
-							continue
-						}
-
-						c.channelLocator.GetMainEventsWriteChannel() <- []subscription.ServiceEvent{event}
-						c.channelLocator.GetEventsServiceIDWriteChannel(event.ServiceID) <- eventsByServiceID
-					}
+					c.channelLocator.GetMainEventsWriteChannel() <- events
 				}
 			}
 		}()

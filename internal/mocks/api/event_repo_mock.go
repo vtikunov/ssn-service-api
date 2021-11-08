@@ -37,7 +37,7 @@ func (m *MockEventRepo) EXPECT() *MockEventRepoMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockEventRepo) Add(arg0 context.Context, arg1 []subscription.ServiceEvent, arg2 repo.QueryerExecer) error {
+func (m *MockEventRepo) Add(arg0 context.Context, arg1 *subscription.ServiceEvent, arg2 repo.QueryerExecer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)

@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	repo "github.com/ozonmp/ssn-service-api/internal/app/repo"
 	subscription "github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
@@ -36,74 +37,44 @@ func (m *MockEventRepo) EXPECT() *MockEventRepoMockRecorder {
 }
 
 // Lock mocks base method.
-func (m *MockEventRepo) Lock(arg0 context.Context, arg1 uint64) ([]subscription.ServiceEvent, error) {
+func (m *MockEventRepo) Lock(arg0 context.Context, arg1 uint64, arg2 repo.QueryerExecer) ([]subscription.ServiceEvent, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Lock", arg0, arg1)
+	ret := m.ctrl.Call(m, "Lock", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]subscription.ServiceEvent)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Lock indicates an expected call of Lock.
-func (mr *MockEventRepoMockRecorder) Lock(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockEventRepoMockRecorder) Lock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lock", reflect.TypeOf((*MockEventRepo)(nil).Lock), arg0, arg1)
-}
-
-// LockByServiceID mocks base method.
-func (m *MockEventRepo) LockByServiceID(arg0 context.Context, arg1 uint64) ([]subscription.ServiceEvent, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LockByServiceID", arg0, arg1)
-	ret0, _ := ret[0].([]subscription.ServiceEvent)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LockByServiceID indicates an expected call of LockByServiceID.
-func (mr *MockEventRepoMockRecorder) LockByServiceID(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockByServiceID", reflect.TypeOf((*MockEventRepo)(nil).LockByServiceID), arg0, arg1)
-}
-
-// LockExceptLockedByServiceID mocks base method.
-func (m *MockEventRepo) LockExceptLockedByServiceID(arg0 context.Context, arg1 uint64) ([]subscription.ServiceEvent, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LockExceptLockedByServiceID", arg0, arg1)
-	ret0, _ := ret[0].([]subscription.ServiceEvent)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LockExceptLockedByServiceID indicates an expected call of LockExceptLockedByServiceID.
-func (mr *MockEventRepoMockRecorder) LockExceptLockedByServiceID(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockExceptLockedByServiceID", reflect.TypeOf((*MockEventRepo)(nil).LockExceptLockedByServiceID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lock", reflect.TypeOf((*MockEventRepo)(nil).Lock), arg0, arg1, arg2)
 }
 
 // Remove mocks base method.
-func (m *MockEventRepo) Remove(arg0 []uint64) error {
+func (m *MockEventRepo) Remove(arg0 context.Context, arg1 []uint64, arg2 repo.QueryerExecer) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Remove", arg0)
+	ret := m.ctrl.Call(m, "Remove", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Remove indicates an expected call of Remove.
-func (mr *MockEventRepoMockRecorder) Remove(arg0 interface{}) *gomock.Call {
+func (mr *MockEventRepoMockRecorder) Remove(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockEventRepo)(nil).Remove), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockEventRepo)(nil).Remove), arg0, arg1, arg2)
 }
 
 // Unlock mocks base method.
-func (m *MockEventRepo) Unlock(arg0 []uint64) error {
+func (m *MockEventRepo) Unlock(arg0 context.Context, arg1 []uint64, arg2 repo.QueryerExecer) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Unlock", arg0)
+	ret := m.ctrl.Call(m, "Unlock", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Unlock indicates an expected call of Unlock.
-func (mr *MockEventRepoMockRecorder) Unlock(arg0 interface{}) *gomock.Call {
+func (mr *MockEventRepoMockRecorder) Unlock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unlock", reflect.TypeOf((*MockEventRepo)(nil).Unlock), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unlock", reflect.TypeOf((*MockEventRepo)(nil).Unlock), arg0, arg1, arg2)
 }

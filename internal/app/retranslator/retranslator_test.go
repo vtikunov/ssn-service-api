@@ -14,6 +14,7 @@ import (
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 
+	repopkg "github.com/ozonmp/ssn-service-api/internal/app/repo"
 	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/app/retranslator"
 	appmocks "github.com/ozonmp/ssn-service-api/internal/mocks/app"
 )
@@ -43,8 +44,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	var lockCount int64
 	//nolint:dupl
-	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
+	repo.EXPECT().Lock(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, n uint64, tx repopkg.QueryerExecer) ([]subscription.ServiceEvent, error) {
 			start := uint64(atomic.LoadInt64(&lockCount)) + 1
 			result := make([]subscription.ServiceEvent, n)
 
@@ -52,21 +53,15 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 				result[i] = subscription.ServiceEvent{ID: start + i, ServiceID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
+			atomic.AddInt64(&lockCount, int64(n))
+
 			return result, nil
 		},
 	).AnyTimes()
 
-	repo.EXPECT().LockByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
-			atomic.AddInt64(&lockCount, 1)
-
-			return []subscription.ServiceEvent{{ID: serviceID, ServiceID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
-		},
-	).AnyTimes()
-
 	var unlockCount int64
-	repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
-		func(eventIDs []uint64) error {
+	repo.EXPECT().Unlock(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, eventIDs []uint64, tx repopkg.QueryerExecer) error {
 			atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
 
 			return nil
@@ -74,8 +69,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	).AnyTimes()
 
 	var removeCount int64
-	repo.EXPECT().Remove(gomock.Any()).DoAndReturn(
-		func(eventIDs []uint64) error {
+	repo.EXPECT().Remove(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, eventIDs []uint64, tx repopkg.QueryerExecer) error {
 			atomic.AddInt64(&removeCount, int64(len(eventIDs)))
 
 			return nil
@@ -183,8 +178,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	var lockCount int64
 	//nolint:dupl
-	repo.EXPECT().LockExceptLockedByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, n uint64) ([]subscription.ServiceEvent, error) {
+	repo.EXPECT().Lock(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, n uint64, tx repopkg.QueryerExecer) ([]subscription.ServiceEvent, error) {
 			start := uint64(atomic.LoadInt64(&lockCount)) + 1
 			result := make([]subscription.ServiceEvent, n)
 
@@ -192,21 +187,15 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 				result[i] = subscription.ServiceEvent{ID: start + i, ServiceID: start + i, Service: &subscription.Service{ID: start + i}}
 			}
 
+			atomic.AddInt64(&lockCount, int64(n))
+
 			return result, nil
 		},
 	).AnyTimes()
 
-	repo.EXPECT().LockByServiceID(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, serviceID uint64) ([]subscription.ServiceEvent, error) {
-			atomic.AddInt64(&lockCount, 1)
-
-			return []subscription.ServiceEvent{{ID: serviceID, ServiceID: serviceID, Service: &subscription.Service{ID: serviceID}}}, nil
-		},
-	).AnyTimes()
-
 	var unlockCount int64
-	repo.EXPECT().Unlock(gomock.Any()).DoAndReturn(
-		func(eventIDs []uint64) error {
+	repo.EXPECT().Unlock(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, eventIDs []uint64, tx repopkg.QueryerExecer) error {
 			atomic.AddInt64(&unlockCount, int64(len(eventIDs)))
 
 			return nil
@@ -214,8 +203,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	).AnyTimes()
 
 	var removeCount int64
-	repo.EXPECT().Remove(gomock.Any()).DoAndReturn(
-		func(eventIDs []uint64) error {
+	repo.EXPECT().Remove(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, eventIDs []uint64, tx repopkg.QueryerExecer) error {
 			atomic.AddInt64(&removeCount, int64(len(eventIDs)))
 
 			return nil
