@@ -43,13 +43,13 @@ const (
 	Removed EventType = "REMOVED"
 )
 
-// Типы событий экземпляра сервиса
+// Субтипы событий экземпляра сервиса
 //
-// Created: сервис создан.
+// NoneSubType: не определен.
 //
-// Updated: сервис обновлен.
+// NameSubtype: событие для свойства Name.
 //
-// Removed: сервис удален.
+// DescriptionSubType: событие для свойства Description.
 const (
 	NoneSubType        EventSubType = "NONE"
 	NameSubtype        EventSubType = "NAME"
