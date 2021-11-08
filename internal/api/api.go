@@ -22,7 +22,7 @@ type serviceService interface {
 	Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error)
 	Add(ctx context.Context, service *subscription.Service) error
 	Update(ctx context.Context, service *subscription.Service) error
-	List(ctx context.Context) ([]*subscription.Service, error)
+	List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error)
 	Remove(ctx context.Context, serviceID uint64) (ok bool, err error)
 }
 

@@ -587,6 +587,20 @@ func (m *ListServicesV1Request) Validate() error {
 		return nil
 	}
 
+	if m.GetOffset() <= 0 {
+		return ListServicesV1RequestValidationError{
+			field:  "Offset",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if val := m.GetLimit(); val <= 0 || val > 500 {
+		return ListServicesV1RequestValidationError{
+			field:  "Limit",
+			reason: "value must be inside range (0, 500]",
+		}
+	}
+
 	return nil
 }
 

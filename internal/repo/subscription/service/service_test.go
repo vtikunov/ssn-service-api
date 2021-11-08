@@ -97,11 +97,11 @@ func Test_ServiceListSQL(t *testing.T) {
 		AddRow(1, "Test", "Test desc", false, time.Now(), time.Now()).
 		AddRow(2, "Test2", "Test desc2", false, time.Now(), time.Now())
 
-	dbMock.ExpectQuery(`SELECT * FROM services WHERE is_removed = $1 ORDER BY id ASC`).
+	dbMock.ExpectQuery(`SELECT * FROM services WHERE is_removed = $1 ORDER BY id ASC LIMIT 2 OFFSET 0`).
 		WithArgs(false).
 		WillReturnRows(rows)
 
-	_, err := r.List(ctx, nil)
+	_, err := r.List(ctx, 0, 2, nil)
 
 	require.NoError(t, err)
 }

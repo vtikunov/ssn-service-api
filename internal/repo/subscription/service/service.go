@@ -34,7 +34,7 @@ type ServiceRepo interface {
 	Describe(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (*subscription.Service, error)
 	Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
-	List(ctx context.Context, tx repo.QueryerExecer) ([]*subscription.Service, error)
+	List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error)
 	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error)
 }
 
@@ -144,12 +144,14 @@ func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service,
 }
 
 // List - возвращает постраничный список сервисов.
-func (r *serviceRepo) List(ctx context.Context, tx repo.QueryerExecer) ([]*subscription.Service, error) {
+func (r *serviceRepo) List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error) {
 	execer := r.getExecer(tx)
 
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
 	query = query.Where(sq.Eq{"is_removed": false})
 	query = query.OrderBy("id ASC")
+	query = query.Offset(offset)
+	query = query.Limit(limit)
 
 	s, args, err := query.ToSql()
 	if err != nil {

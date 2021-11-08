@@ -12,7 +12,7 @@ type serviceRepo interface {
 	Describe(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (*subscription.Service, error)
 	Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
-	List(ctx context.Context, tx repo.QueryerExecer) ([]*subscription.Service, error)
+	List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error)
 	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error)
 }
 
@@ -101,8 +101,8 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 }
 
 // List - возвращает постраничный список сервисов.
-func (s *serviceService) List(ctx context.Context) ([]*subscription.Service, error) {
-	return s.srvRepo.List(ctx, nil)
+func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error) {
+	return s.srvRepo.List(ctx, offset, limit, nil)
 }
 
 // Remove - удаляет сервис.

@@ -66,18 +66,18 @@ func (mr *MockServiceRepoMockRecorder) Describe(arg0, arg1, arg2 interface{}) *g
 }
 
 // List mocks base method.
-func (m *MockServiceRepo) List(arg0 context.Context, arg1 repo.QueryerExecer) ([]*subscription.Service, error) {
+func (m *MockServiceRepo) List(arg0 context.Context, arg1, arg2 uint64, arg3 repo.QueryerExecer) ([]*subscription.Service, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1)
+	ret := m.ctrl.Call(m, "List", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*subscription.Service)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockServiceRepoMockRecorder) List(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockServiceRepoMockRecorder) List(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockServiceRepo)(nil).List), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockServiceRepo)(nil).List), arg0, arg1, arg2, arg3)
 }
 
 // Remove mocks base method.
