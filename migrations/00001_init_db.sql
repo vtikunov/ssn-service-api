@@ -9,6 +9,8 @@ CREATE TABLE services
     updated_at  TIMESTAMP NOT NULL
 );
 
+CREATE INDEX services_is_removed_idx ON services USING btree (is_removed);
+
 CREATE TYPE service_event_type AS ENUM ('CREATED', 'UPDATED', 'REMOVED');
 CREATE TYPE service_event_status AS ENUM ('DEFERRED', 'PROCESSED');
 
@@ -22,7 +24,15 @@ CREATE TABLE service_events
     updated_at TIMESTAMP            NOT NULL
 );
 
+CREATE INDEX service_events_service_id_idx ON service_events USING btree (service_id);
+CREATE INDEX service_events_type_idx ON service_events USING btree (type);
+CREATE INDEX service_events_status_idx ON service_events USING btree (status);
+
 -- +goose Down
+DROP INDEX services_is_removed_idx;
+DROP INDEX service_events_status_idx;
+DROP INDEX service_events_type_idx;
+DROP INDEX service_events_service_id_idx;
 DROP TABLE services;
 DROP TABLE service_events;
 DROP TYPE service_event_type;

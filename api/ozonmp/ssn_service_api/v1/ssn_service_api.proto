@@ -80,7 +80,7 @@ message UpdateServiceV1Response {
 }
 
 message ListServicesV1Request {
-  uint64 offset = 1 [(validate.rules).uint64.gt = 0];
+  uint64 offset = 1;
   uint64 limit = 2 [(validate.rules).uint64={gt: 0, lte: 500}];
 }
 

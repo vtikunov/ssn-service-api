@@ -107,30 +107,6 @@ func TestServiceAPI_DescribeServiceV1Request_ServiceIDValidation(t *testing.T) {
 }
 
 //nolint:dupl
-func TestServiceAPI_ListServiceV1Request_OffsetValidation(t *testing.T) {
-	ctx := context.Background()
-	client, closeCl := prepareClient(ctx, t)
-	defer closeCl()
-
-	requests := []*pb.ListServicesV1Request{
-		{Limit: 10},
-		{Offset: 0, Limit: 10},
-	}
-
-	for _, request := range requests {
-		response, err := client.ListServicesV1(ctx, request)
-
-		assert.Nil(t, response)
-		assert.NotNil(t, err)
-
-		er, _ := status.FromError(err)
-
-		assert.Equal(t, codes.InvalidArgument, er.Code())
-		assert.Equal(t, "invalid ListServicesV1Request.Offset: value must be greater than 0", er.Message())
-	}
-}
-
-//nolint:dupl
 func TestServiceAPI_ListServiceV1Request_LimitValidation(t *testing.T) {
 	ctx := context.Background()
 	client, closeCl := prepareClient(ctx, t)
