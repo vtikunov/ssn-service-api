@@ -100,6 +100,80 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 	return err
 }
 
+// UpdateName - обновляет наименование сервиса.
+// nolint:dupl
+func (s *serviceService) UpdateName(ctx context.Context, serviceID uint64, name string) error {
+	var updErr error
+
+	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
+		srv, err := s.srvRepo.Describe(ctx, serviceID, tx)
+
+		if err != nil {
+			return err
+		}
+
+		srv.Name = name
+
+		updErr = s.srvRepo.Update(ctx, srv, tx)
+
+		if updErr != nil {
+			return updErr
+		}
+
+		return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
+			ServiceID: srv.ID,
+			Type:      subscription.Updated,
+			SubType:   subscription.NameSubtype,
+			Status:    subscription.Deferred,
+			Service:   srv,
+			UpdatedAt: time.Now(),
+		}, tx)
+	})
+
+	if updErr != nil {
+		return updErr
+	}
+
+	return err
+}
+
+// UpdateDescription - обновляет описание сервиса.
+// nolint:dupl
+func (s *serviceService) UpdateDescription(ctx context.Context, serviceID uint64, desc string) error {
+	var updErr error
+
+	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
+		srv, err := s.srvRepo.Describe(ctx, serviceID, tx)
+
+		if err != nil {
+			return err
+		}
+
+		srv.Description = desc
+
+		updErr = s.srvRepo.Update(ctx, srv, tx)
+
+		if updErr != nil {
+			return updErr
+		}
+
+		return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
+			ServiceID: srv.ID,
+			Type:      subscription.Updated,
+			SubType:   subscription.DescriptionSubType,
+			Status:    subscription.Deferred,
+			Service:   srv,
+			UpdatedAt: time.Now(),
+		}, tx)
+	})
+
+	if updErr != nil {
+		return updErr
+	}
+
+	return err
+}
+
 // List - возвращает постраничный список сервисов.
 func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error) {
 	return s.srvRepo.List(ctx, offset, limit, nil)

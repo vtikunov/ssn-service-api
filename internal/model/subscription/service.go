@@ -24,6 +24,9 @@ type Service struct {
 // EventType - тип события экземпляра сервиса.
 type EventType string
 
+// EventSubType - субтип события экземпляра сервиса.
+type EventSubType string
+
 // EventStatus - статус события экземпляра сервиса.
 type EventStatus string
 
@@ -38,6 +41,19 @@ const (
 	Created EventType = "CREATED"
 	Updated EventType = "UPDATED"
 	Removed EventType = "REMOVED"
+)
+
+// Типы событий экземпляра сервиса
+//
+// Created: сервис создан.
+//
+// Updated: сервис обновлен.
+//
+// Removed: сервис удален.
+const (
+	NoneSubType        EventSubType = "NONE"
+	NameSubtype        EventSubType = "NAME"
+	DescriptionSubType EventSubType = "DESCRIPTION"
 )
 
 // Статусы событий экземпляра сервиса
@@ -62,10 +78,11 @@ const (
 //
 // Service: экземпляр сервиса (Service).
 type ServiceEvent struct {
-	ID        uint64      `db:"id"`
-	ServiceID uint64      `db:"service_id"`
-	Type      EventType   `db:"type"`
-	Status    EventStatus `db:"status"`
-	Service   *Service    `db:"payload"`
-	UpdatedAt time.Time   `db:"updated_at"`
+	ID        uint64       `db:"id"`
+	ServiceID uint64       `db:"service_id"`
+	Type      EventType    `db:"type"`
+	SubType   EventSubType `db:"subtype"`
+	Status    EventStatus  `db:"status"`
+	Service   *Service     `db:"payload"`
+	UpdatedAt time.Time    `db:"updated_at"`
 }
