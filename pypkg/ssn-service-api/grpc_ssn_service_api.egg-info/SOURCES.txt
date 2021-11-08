@@ -19,6 +19,8 @@ ozonmp/ssn_service_api/__init__.py
 ozonmp/ssn_service_api/v1/__init__.py
 ozonmp/ssn_service_api/v1/ssn_service_api_grpc.py
 ozonmp/ssn_service_api/v1/ssn_service_api_pb2.py
+ozonmp/ssn_service_api/v1/ssn_service_event_grpc.py
+ozonmp/ssn_service_api/v1/ssn_service_event_pb2.py
 validate/__init__.py
 validate/validate_grpc.py
 validate/validate_pb2.py
