@@ -5,14 +5,13 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ozonmp/ssn-service-api/internal/repo"
+	sq "github.com/Masterminds/squirrel"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
-
-	sq "github.com/Masterminds/squirrel"
-	"github.com/jmoiron/sqlx"
+	"github.com/ozonmp/ssn-service-api/internal/repo"
 )
 
 // ErrNoService - ошибка отсутствия сервиса в репозитории.
@@ -52,7 +51,7 @@ func NewServiceRepo(db repo.QueryerExecer) *serviceRepo {
 func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (*subscription.Service, error) {
 	execer := r.getExecer(tx)
 
-	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
+	query := sq.Select("id, name, description, is_removed, created_at, updated_at").PlaceholderFormat(sq.Dollar).From("services")
 	query = query.Where(sq.And{sq.Eq{"id": serviceID}, sq.Eq{"is_removed": false}})
 
 	s, args, err := query.ToSql()

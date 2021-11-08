@@ -12,7 +12,7 @@ import (
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
-func setup() (*eventRepo, sqlmock.Sqlmock) {
+func setupEventRepo() (*eventRepo, sqlmock.Sqlmock) {
 	mockDB, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	sqlxDB := sqlx.NewDb(mockDB, "sqlmock")
 
@@ -23,8 +23,8 @@ func setup() (*eventRepo, sqlmock.Sqlmock) {
 	return repo, mock
 }
 
-func Test_LockSQL(t *testing.T) {
-	r, dbMock := setup()
+func Test_EventsLockSQL(t *testing.T) {
+	r, dbMock := setupEventRepo()
 	ctx := context.Background()
 
 	rows := sqlmock.NewRows([]string{"id", "service_id", "type", "status", "payload", "updated_at"}).
@@ -50,8 +50,8 @@ func Test_LockSQL(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func Test_UnlockSQL(t *testing.T) {
-	r, dbMock := setup()
+func Test_EventsUnlockSQL(t *testing.T) {
+	r, dbMock := setupEventRepo()
 	ctx := context.Background()
 
 	dbMock.ExpectExec(`UPDATE service_events SET status = $1, updated_at = $2 WHERE id IN ($3,$4)`).
@@ -63,8 +63,8 @@ func Test_UnlockSQL(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func Test_RemoveSQL(t *testing.T) {
-	r, dbMock := setup()
+func Test_EventsRemoveSQL(t *testing.T) {
+	r, dbMock := setupEventRepo()
 	ctx := context.Background()
 
 	dbMock.ExpectExec(`DELETE FROM service_events WHERE id IN ($1,$2)`).
