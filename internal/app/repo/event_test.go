@@ -49,3 +49,29 @@ func Test_LockSQL(t *testing.T) {
 
 	require.NoError(t, err)
 }
+
+func Test_UnlockSQL(t *testing.T) {
+	r, dbMock := setup()
+	ctx := context.Background()
+
+	dbMock.ExpectExec(`UPDATE service_events SET status = $1, updated_at = $2 WHERE id IN ($3,$4)`).
+		WithArgs(subscription.Deferred, "NOW()", 1, 2).
+		WillReturnResult(sqlmock.NewResult(2, 2))
+
+	err := r.Unlock(ctx, []uint64{1, 2}, nil)
+
+	require.NoError(t, err)
+}
+
+func Test_RemoveSQL(t *testing.T) {
+	r, dbMock := setup()
+	ctx := context.Background()
+
+	dbMock.ExpectExec(`DELETE FROM service_events WHERE id IN ($1,$2)`).
+		WithArgs(1, 2).
+		WillReturnResult(sqlmock.NewResult(2, 2))
+
+	err := r.Remove(ctx, []uint64{1, 2}, nil)
+
+	require.NoError(t, err)
+}
