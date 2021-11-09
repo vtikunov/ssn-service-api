@@ -1,11 +1,19 @@
 # Builder
 
-FROM golang:1.16-alpine AS builder
-ARG GITHUB_PATH=github.com/ozonmp/ssn-service-api
+FROM golang:1.17-alpine AS builder
 RUN apk add --update make git protoc protobuf protobuf-dev curl
-COPY . /home/${GITHUB_PATH}
+
+ARG GITHUB_PATH=github.com/ozonmp/ssn-service-api
+
+COPY Makefile /home/${GITHUB_PATH}/Makefile
+COPY go.mod /home/${GITHUB_PATH}/go.mod
+COPY go.sum /home/${GITHUB_PATH}/go.sum
+COPY pkg /home/${GITHUB_PATH}/pkg
+
 WORKDIR /home/${GITHUB_PATH}
 RUN make deps-go
+
+COPY . /home/${GITHUB_PATH}
 RUN make build-go
 
 # gRPC Server

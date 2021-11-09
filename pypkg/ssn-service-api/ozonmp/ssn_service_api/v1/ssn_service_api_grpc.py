@@ -11,6 +11,7 @@ if typing.TYPE_CHECKING:
 
 import validate.validate_pb2
 import google.api.annotations_pb2
+import google.protobuf.timestamp_pb2
 import ozonmp.ssn_service_api.v1.ssn_service_api_pb2
 
 
@@ -22,6 +23,10 @@ class SsnServiceApiServiceBase(abc.ABC):
 
     @abc.abstractmethod
     async def DescribeServiceV1(self, stream: 'grpclib.server.Stream[ozonmp.ssn_service_api.v1.ssn_service_api_pb2.DescribeServiceV1Request, ozonmp.ssn_service_api.v1.ssn_service_api_pb2.DescribeServiceV1Response]') -> None:
+        pass
+
+    @abc.abstractmethod
+    async def UpdateServiceV1(self, stream: 'grpclib.server.Stream[ozonmp.ssn_service_api.v1.ssn_service_api_pb2.UpdateServiceV1Request, ozonmp.ssn_service_api.v1.ssn_service_api_pb2.UpdateServiceV1Response]') -> None:
         pass
 
     @abc.abstractmethod
@@ -45,6 +50,12 @@ class SsnServiceApiServiceBase(abc.ABC):
                 grpclib.const.Cardinality.UNARY_UNARY,
                 ozonmp.ssn_service_api.v1.ssn_service_api_pb2.DescribeServiceV1Request,
                 ozonmp.ssn_service_api.v1.ssn_service_api_pb2.DescribeServiceV1Response,
+            ),
+            '/ozonmp.ssn_service_api.v1.SsnServiceApiService/UpdateServiceV1': grpclib.const.Handler(
+                self.UpdateServiceV1,
+                grpclib.const.Cardinality.UNARY_UNARY,
+                ozonmp.ssn_service_api.v1.ssn_service_api_pb2.UpdateServiceV1Request,
+                ozonmp.ssn_service_api.v1.ssn_service_api_pb2.UpdateServiceV1Response,
             ),
             '/ozonmp.ssn_service_api.v1.SsnServiceApiService/ListServicesV1': grpclib.const.Handler(
                 self.ListServicesV1,
@@ -75,6 +86,12 @@ class SsnServiceApiServiceStub:
             '/ozonmp.ssn_service_api.v1.SsnServiceApiService/DescribeServiceV1',
             ozonmp.ssn_service_api.v1.ssn_service_api_pb2.DescribeServiceV1Request,
             ozonmp.ssn_service_api.v1.ssn_service_api_pb2.DescribeServiceV1Response,
+        )
+        self.UpdateServiceV1 = grpclib.client.UnaryUnaryMethod(
+            channel,
+            '/ozonmp.ssn_service_api.v1.SsnServiceApiService/UpdateServiceV1',
+            ozonmp.ssn_service_api.v1.ssn_service_api_pb2.UpdateServiceV1Request,
+            ozonmp.ssn_service_api.v1.ssn_service_api_pb2.UpdateServiceV1Response,
         )
         self.ListServicesV1 = grpclib.client.UnaryUnaryMethod(
             channel,

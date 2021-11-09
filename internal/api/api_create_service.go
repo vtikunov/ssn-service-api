@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"time"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 
@@ -22,9 +23,9 @@ func (o *serviceAPI) CreateServiceV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	service := subscription.Service{Name: req.Name}
+	service := subscription.Service{Name: req.Name, Description: req.Description, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
-	if err := o.repo.Add(ctx, &service); err != nil {
+	if err := o.srvService.Add(ctx, &service); err != nil {
 		log.Error().Err(err).Msg("CreateServiceV1 -- failed")
 
 		return nil, status.Error(codes.Internal, err.Error())

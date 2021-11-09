@@ -20,7 +20,7 @@ func (o *serviceAPI) ListServicesV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	services, err := o.repo.List(ctx)
+	services, err := o.srvService.List(ctx, req.Offset, req.Limit)
 	if err != nil {
 		log.Error().Err(err).Msg("ListServicesV1 -- failed")
 
@@ -29,7 +29,7 @@ func (o *serviceAPI) ListServicesV1(
 
 	log.Debug().Msg("ListServicesV1 - success")
 
-	servicesPb := make([]*pb.Service, len(services))
+	servicesPb := make([]*pb.Service, 0, len(services))
 
 	for _, service := range services {
 		servicesPb = append(servicesPb, convertServiceToPb(service))

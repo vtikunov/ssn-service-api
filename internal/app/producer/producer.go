@@ -3,10 +3,13 @@ package producer
 import (
 	"context"
 	"log"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/gammazero/workerpool"
+
+	"github.com/ozonmp/ssn-service-api/internal/app/repo"
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
@@ -21,13 +24,13 @@ type eventSender interface {
 }
 
 type eventRepoUnlockRemover interface {
-	Unlock(eventIDs []uint64) error
-	Remove(eventIDs []uint64) error
+	Unlock(ctx context.Context, eventIDs []uint64, tx repo.QueryerExecer) error
+
+	Remove(ctx context.Context, eventIDs []uint64, tx repo.QueryerExecer) error
 }
 
 type channelLocator interface {
 	GetMainEventsReadChannel() <-chan []subscription.ServiceEvent
-	GetEventsServiceIDReadChannel(serviceID uint64) (<-chan []subscription.ServiceEvent, error)
 }
 
 type producer struct {
@@ -84,20 +87,29 @@ func NewProducer(
 func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []subscription.ServiceEvent) {
 	errorIDs := make([]uint64, 0)
 	completeIDs := make([]uint64, 0)
+	eventsByServiceID := make(map[uint64][]subscription.ServiceEvent)
 	for _, event := range events {
-		eventChannel, err := p.channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
-		for err != nil {
-			eventChannel, err = p.channelLocator.GetEventsServiceIDReadChannel(event.Service.ID)
+		if _, exists := eventsByServiceID[event.ServiceID]; !exists {
+			eventsByServiceID[event.ServiceID] = make([]subscription.ServiceEvent, 0, 1)
 		}
 
-		eventsForServiceID := <-eventChannel
+		eventsByServiceID[event.ServiceID] = append(eventsByServiceID[event.ServiceID], event)
+	}
 
-		for es, eventForService := range eventsForServiceID {
-			if err := p.sender.Send(ctx, &eventsForServiceID[es]); err != nil {
+	for _, eventsForService := range eventsByServiceID {
+		sort.Slice(eventsForService, func(i, j int) bool {
+			return eventsForService[i].ID > eventsForService[j].ID
+		})
+
+		for i, eventForService := range eventsForService {
+			if err := p.sender.Send(ctx, &eventsForService[i]); err != nil {
 				log.Printf("producer: failed to send event with ID %v - %v", eventForService.ID, err)
-				errorIDs = append(errorIDs, eventForService.ID)
 
-				continue
+				for ; i < len(eventsForService); i++ {
+					errorIDs = append(errorIDs, eventsForService[i].ID)
+				}
+
+				break
 			}
 
 			completeIDs = append(completeIDs, eventForService.ID)
@@ -106,7 +118,7 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 
 	if len(errorIDs) > 0 {
 		p.workerPool.Submit(func() {
-			if err := p.eventRepo.Unlock(errorIDs); err != nil {
+			if err := p.eventRepo.Unlock(ctx, errorIDs, nil); err != nil {
 				log.Printf("producer: failed to unlock events after fail send - %v", err)
 			}
 		})
@@ -114,7 +126,7 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 
 	if len(completeIDs) > 0 {
 		p.workerPool.Submit(func() {
-			if err := p.eventRepo.Remove(completeIDs); err != nil {
+			if err := p.eventRepo.Remove(ctx, completeIDs, nil); err != nil {
 				log.Printf("producer: failed to remove events after send - %v", err)
 			}
 		})

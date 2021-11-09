@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="grpc-ssn-service-api",
-    version="0.3.1",
+    version="4.0.0",
     author="vtikunov",
     author_email="vtikunov@yandex.ru",
     description="GRPC python client for ssn-service-api",

@@ -1,5 +1,5 @@
 project:
-  name: Ozon Code Platform Service API
+  name: Ozon Marketplace Subscription Service API
   debug: true
   environment: development
 

@@ -6,17 +6,17 @@ import (
 	"net"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/golang/mock/gomock"
-	"github.com/ozonmp/ssn-service-api/internal/mocks"
-
-	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
+
+	"github.com/ozonmp/ssn-service-api/internal/service/subscription"
+
+	apimocks "github.com/ozonmp/ssn-service-api/internal/mocks/api"
+	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 )
 
 func dialer(t *testing.T) func(context.Context, string) (net.Conn, error) {
@@ -25,9 +25,11 @@ func dialer(t *testing.T) func(context.Context, string) (net.Conn, error) {
 	server := grpc.NewServer()
 
 	ctrl := gomock.NewController(t)
-	repo := mocks.NewMockServiceRepo(ctrl)
+	repo := apimocks.NewMockServiceRepo(ctrl)
+	eventRepo := apimocks.NewMockEventRepo(ctrl)
+	tsx := apimocks.NewMockTransactionalSession(ctrl)
 
-	pb.RegisterSsnServiceApiServiceServer(server, NewServiceAPI(repo))
+	pb.RegisterSsnServiceApiServiceServer(server, NewServiceAPI(subscription.NewServiceService(repo, eventRepo, tsx)))
 
 	go func() {
 		if err := server.Serve(listener); err != nil {
@@ -101,6 +103,31 @@ func TestServiceAPI_DescribeServiceV1Request_ServiceIDValidation(t *testing.T) {
 
 		assert.Equal(t, codes.InvalidArgument, er.Code())
 		assert.Equal(t, "invalid DescribeServiceV1Request.ServiceId: value must be greater than 0", er.Message())
+	}
+}
+
+//nolint:dupl
+func TestServiceAPI_ListServiceV1Request_LimitValidation(t *testing.T) {
+	ctx := context.Background()
+	client, closeCl := prepareClient(ctx, t)
+	defer closeCl()
+
+	requests := []*pb.ListServicesV1Request{
+		{Offset: 10},
+		{Offset: 10, Limit: 0},
+		{Offset: 10, Limit: 501},
+	}
+
+	for _, request := range requests {
+		response, err := client.ListServicesV1(ctx, request)
+
+		assert.Nil(t, response)
+		assert.NotNil(t, err)
+
+		er, _ := status.FromError(err)
+
+		assert.Equal(t, codes.InvalidArgument, er.Code())
+		assert.Equal(t, "invalid ListServicesV1Request.Limit: value must be inside range (0, 500]", er.Message())
 	}
 }
 

@@ -1,20 +1,34 @@
 package subscription
 
+import "time"
+
 // Service - экземпляр сервиса.
 //
 // ID: идентификатор.
 //
 // Name: наименование.
+//
+// Description: описание.
+//
+// IsRemoved: флаг удаленного сервиса.
+//
 type Service struct {
-	ID   uint64 `db:"id"`
-	Name string `db:"name"`
+	ID          uint64    `db:"id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	IsRemoved   bool      `db:"is_removed"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 // EventType - тип события экземпляра сервиса.
-type EventType uint8
+type EventType string
+
+// EventSubType - субтип события экземпляра сервиса.
+type EventSubType string
 
 // EventStatus - статус события экземпляра сервиса.
-type EventStatus uint8
+type EventStatus string
 
 // Типы событий экземпляра сервиса
 //
@@ -24,9 +38,22 @@ type EventStatus uint8
 //
 // Removed: сервис удален.
 const (
-	Created EventType = iota
-	Updated
-	Removed
+	Created EventType = "CREATED"
+	Updated EventType = "UPDATED"
+	Removed EventType = "REMOVED"
+)
+
+// Субтипы событий экземпляра сервиса
+//
+// NoneSubType: не определен.
+//
+// NameSubtype: событие для свойства Name.
+//
+// DescriptionSubType: событие для свойства Description.
+const (
+	NoneSubType        EventSubType = "NONE"
+	NameSubtype        EventSubType = "NAME"
+	DescriptionSubType EventSubType = "DESCRIPTION"
 )
 
 // Статусы событий экземпляра сервиса
@@ -35,13 +62,15 @@ const (
 //
 // Processed: событие обрабатывается.
 const (
-	Deferred EventStatus = iota
-	Processed
+	Deferred  EventStatus = "DEFERRED"
+	Processed EventStatus = "PROCESSED"
 )
 
 // ServiceEvent - событие экземпляра сервиса.
 //
 // ID: идентификатор события.
+//
+// ServiceID: идентификатор сервиса.
 //
 // Type: тип события (EventType).
 //
@@ -49,8 +78,11 @@ const (
 //
 // Service: экземпляр сервиса (Service).
 type ServiceEvent struct {
-	ID      uint64
-	Type    EventType
-	Status  EventStatus
-	Service *Service
+	ID        uint64       `db:"id"`
+	ServiceID uint64       `db:"service_id"`
+	Type      EventType    `db:"type"`
+	SubType   EventSubType `db:"subtype"`
+	Status    EventStatus  `db:"status"`
+	Service   *Service     `db:"payload"`
+	UpdatedAt time.Time    `db:"updated_at"`
 }

@@ -20,7 +20,7 @@ func (o *serviceAPI) RemoveServiceV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ok, err := o.repo.Remove(ctx, req.ServiceId)
+	ok, err := o.srvService.Remove(ctx, req.ServiceId)
 	if err != nil {
 		log.Error().Err(err).Msg("RemoveServiceV1 -- failed")
 
@@ -30,6 +30,6 @@ func (o *serviceAPI) RemoveServiceV1(
 	log.Debug().Msg("RemoveServiceV1 - success")
 
 	return &pb.RemoveServiceV1Response{
-		Found: ok,
+		IsFounded: ok,
 	}, nil
 }
