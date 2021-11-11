@@ -31,6 +31,10 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64, tx QueryerExecer) ([]sub
 
 	rows, err := execer.QueryContext(ctx, s, args...)
 	defer func() {
+		if rows == nil {
+			return
+		}
+
 		if errCl := rows.Close(); errCl != nil {
 			log.Error().Err(errCl)
 		}
