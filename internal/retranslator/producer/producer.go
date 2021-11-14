@@ -2,10 +2,11 @@ package producer
 
 import (
 	"context"
-	"log"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 
 	"github.com/gammazero/workerpool"
 
@@ -62,6 +63,7 @@ type producer struct {
 // maxWorkers: определяет максимальное количество вспомогательных воркеров работы
 // с репозиторием событий eventRepo, которые будут запущены конкуретно.
 func NewProducer(
+	ctx context.Context,
 	timeout time.Duration,
 	channelLocator channelLocator,
 	sender eventSender,
@@ -70,7 +72,7 @@ func NewProducer(
 ) *producer {
 
 	if maxWorkers == 0 {
-		log.Panicln("maxWorkers must be greater than 0")
+		logger.FatalKV(ctx, "maxWorkers must be greater than 0")
 	}
 
 	return &producer{
@@ -103,7 +105,7 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 
 		for i, eventForService := range eventsForService {
 			if err := p.sender.Send(ctx, &eventsForService[i]); err != nil {
-				log.Printf("producer: failed to send event with ID %v - %v", eventForService.ID, err)
+				logger.ErrorKV(ctx, "producer: failed to send event", "eventID", eventForService.ID, "err", err)
 
 				for ; i < len(eventsForService); i++ {
 					errorIDs = append(errorIDs, eventsForService[i].ID)
@@ -119,7 +121,7 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 	if len(errorIDs) > 0 {
 		p.workerPool.Submit(func() {
 			if err := p.eventRepo.Unlock(ctx, errorIDs, nil); err != nil {
-				log.Printf("producer: failed to unlock events after fail send - %v", err)
+				logger.ErrorKV(ctx, "producer: failed to unlock events after fail send", "err", err)
 			}
 		})
 	}
@@ -127,7 +129,7 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 	if len(completeIDs) > 0 {
 		p.workerPool.Submit(func() {
 			if err := p.eventRepo.Remove(ctx, completeIDs, nil); err != nil {
-				log.Printf("producer: failed to remove events after send - %v", err)
+				logger.ErrorKV(ctx, "producer: failed to remove events after send", "err", err)
 			}
 		})
 	}
@@ -226,6 +228,6 @@ func NewProducerFactory(
 //
 // timeout: определяет максимальное время "пустого простоя" экземпляра воркера-продьюсера,
 // по истечении которого он будет остановлен.
-func (pf *producerFactory) Create(timeout time.Duration) Producer {
-	return NewProducer(timeout, pf.channelLocator, pf.sender, pf.eventRepo, pf.maxWorkers)
+func (pf *producerFactory) Create(ctx context.Context, timeout time.Duration) Producer {
+	return NewProducer(ctx, timeout, pf.channelLocator, pf.sender, pf.eventRepo, pf.maxWorkers)
 }

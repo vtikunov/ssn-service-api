@@ -2,16 +2,17 @@ package consumerpool
 
 import (
 	"context"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 
 	consumerpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/consumer"
 )
 
 type consumerFactory interface {
-	Create() consumerpkg.Consumer
+	Create(ctx context.Context) consumerpkg.Consumer
 }
 
 type consumerPool struct {
@@ -36,13 +37,14 @@ type consumerPool struct {
 // consumerTimeout: определяет максимальное время работы каждого нового
 // экземпляра воркера-консьюемра, по истечении которого ему будет направлена команда Stop.
 func NewConsumerPool(
+	ctx context.Context,
 	maxConsumers uint64,
 	consumerFactory consumerFactory,
 	consumerTimeout time.Duration,
 ) *consumerPool {
 
 	if maxConsumers == 0 {
-		log.Panicln("maxConsumers must be greater than 0")
+		logger.FatalKV(ctx, "maxConsumers must be greater than 0")
 	}
 
 	return &consumerPool{
@@ -87,7 +89,7 @@ func (cp *consumerPool) dispatch(ctx context.Context) {
 			atomic.AddInt64(&consumerCount, 1)
 			go func() {
 				defer atomic.AddInt64(&consumerCount, -1)
-				consumer := cp.consumerFactory.Create()
+				consumer := cp.consumerFactory.Create(ctx)
 				doneChannel := consumer.Start(ctx)
 				timeout := time.NewTimer(cp.consumerTimeout)
 

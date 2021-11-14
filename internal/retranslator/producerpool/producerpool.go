@@ -2,17 +2,17 @@ package producerpool
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 
 	producerpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/producer"
 )
 
 type producerFactory interface {
-	Create(timeout time.Duration) producerpkg.Producer
+	Create(ctx context.Context, timeout time.Duration) producerpkg.Producer
 }
 
 type producerPool struct {
@@ -37,14 +37,14 @@ type producerPool struct {
 // producerTimeout: определяет максимальное время работы каждого нового
 // экземпляра воркера-продьюсера, по истечении которого ему будет направлена команда Stop.
 func NewProducerPool(
+	ctx context.Context,
 	maxProducers uint64,
 	producerFactory producerFactory,
 	producerTimeout time.Duration,
 ) *producerPool {
 
 	if maxProducers == 0 {
-		fmt.Println(maxProducers)
-		log.Panicln("maxProducers must be greater than 0")
+		logger.FatalKV(ctx, "maxProducers must be greater than 0")
 	}
 
 	return &producerPool{
@@ -89,7 +89,7 @@ func (pp *producerPool) dispatch(ctx context.Context) {
 			atomic.AddInt64(&producerCount, 1)
 			go func() {
 				defer atomic.AddInt64(&producerCount, -1)
-				producer := pp.producerFactory.Create(pp.producerTimeout)
+				producer := pp.producerFactory.Create(ctx, pp.producerTimeout)
 				doneChannel := producer.Start(ctx)
 				timeout := time.NewTimer(pp.producerTimeout)
 

@@ -43,17 +43,19 @@ type retranslator struct {
 }
 
 // NewRetranslator создает новый ретранслятор.
-func NewRetranslator(cfg *config.Retranslator, repo eventRepo, sender eventSender) *retranslator {
+func NewRetranslator(ctx context.Context, cfg *config.Retranslator, repo eventRepo, sender eventSender) *retranslator {
 	eventsChannel := make(chan []subscription.ServiceEvent, cfg.EventChannelSize)
 	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
 	consumerPool := consumerpool.NewConsumerPool(
+		ctx,
 		cfg.MaxConsumers,
 		consumer.NewConsumerFactory(cfg.ConsumerBatchTime, cfg.ConsumerBatchSize, channelLocator, repo),
 		cfg.ConsumerTimeout,
 	)
 
 	producerPool := producerpool.NewProducerPool(
+		ctx,
 		cfg.MaxProducers,
 		producer.NewProducerFactory(channelLocator, sender, repo, cfg.ProducerMaxWorkers),
 		cfg.ProducerTimeout,

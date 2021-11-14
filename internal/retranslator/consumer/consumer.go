@@ -2,9 +2,10 @@ package consumer
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
@@ -48,6 +49,7 @@ type consumer struct {
 // eventRepo: указатель на экземпляр репозитория событий, из которого консьюмер
 // получает и блокирует события.
 func NewConsumer(
+	ctx context.Context,
 	batchTime time.Duration,
 	batchSize uint64,
 	channelLocator channelLocator,
@@ -55,7 +57,7 @@ func NewConsumer(
 ) *consumer {
 
 	if batchSize == 0 {
-		log.Panicln("batchSize must be greater than 0")
+		logger.FatalKV(ctx, "batchSize must be greater than 0")
 	}
 
 	return &consumer{
@@ -91,7 +93,7 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 				case <-timeout.C:
 					events, err := c.eventRepo.Lock(ctx, c.batchSize, nil)
 					if err != nil {
-						log.Printf("consumer: failed to lock events - %v", err)
+						logger.ErrorKV(ctx, "consumer: failed to lock events", "err", err)
 
 						continue
 					}
@@ -154,6 +156,6 @@ func NewConsumerFactory(
 }
 
 // Create создает воркера-консьюмера.
-func (cf *consumerFactory) Create() Consumer {
-	return NewConsumer(cf.batchTime, cf.batchSize, cf.channelLocator, cf.eventRepo)
+func (cf *consumerFactory) Create(ctx context.Context) Consumer {
+	return NewConsumer(ctx, cf.batchTime, cf.batchSize, cf.channelLocator, cf.eventRepo)
 }

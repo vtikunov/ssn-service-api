@@ -58,6 +58,7 @@ func (s *retranslatorServer) Start(ctx context.Context, cfg *config.Config) {
 	}()
 
 	retranslator := retranslatorpkg.NewRetranslator(
+		ctx,
 		&cfg.Retranslator,
 		repo.NewEventRepo(s.db),
 		sender.NewDummySender(),

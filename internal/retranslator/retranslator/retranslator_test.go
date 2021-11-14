@@ -97,6 +97,7 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	).AnyTimes()
 
 	retranslator := retranslatorpkg.NewRetranslator(
+		ctx,
 		&config.Retranslator{
 			EventChannelSize: d.eventChannelSize,
 
@@ -231,6 +232,7 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	).AnyTimes()
 
 	retranslator := retranslatorpkg.NewRetranslator(
+		ctx,
 		&config.Retranslator{
 			EventChannelSize: d.eventChannelSize,
 
