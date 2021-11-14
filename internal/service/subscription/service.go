@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/tracer"
+
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/repo"
 )
@@ -41,12 +43,18 @@ func NewServiceService(srvRepo serviceRepo, eventRepo eventRepo, txs transaction
 
 // Describe - возвращает сервис по его ID.
 func (s *serviceService) Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "service.Describe")
+	defer sp.Finish()
+
 	return s.srvRepo.Describe(ctx, serviceID, nil)
 }
 
 // Add - добавляет сервис.
 // nolint:dupl
 func (s *serviceService) Add(ctx context.Context, service *subscription.Service) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.Add")
+	defer sp.Finish()
+
 	var addErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -75,6 +83,9 @@ func (s *serviceService) Add(ctx context.Context, service *subscription.Service)
 // Update - обновляет сервис.
 // nolint:dupl
 func (s *serviceService) Update(ctx context.Context, service *subscription.Service) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.Update")
+	defer sp.Finish()
+
 	var updErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -103,6 +114,9 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 // UpdateName - обновляет наименование сервиса.
 // nolint:dupl
 func (s *serviceService) UpdateName(ctx context.Context, serviceID uint64, name string) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.UpdateName")
+	defer sp.Finish()
+
 	var updErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -140,6 +154,9 @@ func (s *serviceService) UpdateName(ctx context.Context, serviceID uint64, name 
 // UpdateDescription - обновляет описание сервиса.
 // nolint:dupl
 func (s *serviceService) UpdateDescription(ctx context.Context, serviceID uint64, desc string) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.UpdateDescription")
+	defer sp.Finish()
+
 	var updErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -176,12 +193,18 @@ func (s *serviceService) UpdateDescription(ctx context.Context, serviceID uint64
 
 // List - возвращает постраничный список сервисов.
 func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "service.List")
+	defer sp.Finish()
+
 	return s.srvRepo.List(ctx, offset, limit, nil)
 }
 
 // Remove - удаляет сервис.
 // Возвращает true если сервис существовал и успешно удален методом.
 func (s serviceService) Remove(ctx context.Context, serviceID uint64) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.Remove")
+	defer sp.Finish()
+
 	var rmvErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {

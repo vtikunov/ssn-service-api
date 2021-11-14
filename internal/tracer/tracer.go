@@ -36,3 +36,28 @@ func NewTracer(ctx context.Context, serviceName string, host string, port string
 
 	return closer, nil
 }
+
+type span struct {
+	base opentracing.Span
+}
+
+// StartSpanFromContext - стартует подчиненный спан.
+func StartSpanFromContext(ctx context.Context, name string) *span {
+	baseSp := opentracing.SpanFromContext(ctx)
+
+	var sp opentracing.Span
+	if baseSp == nil {
+		sp = opentracing.StartSpan(name)
+	} else {
+		sp = opentracing.StartSpan(name, opentracing.FollowsFrom(baseSp.Context()))
+	}
+
+	return &span{
+		base: sp,
+	}
+}
+
+// Finish - заканчивает спан.
+func (s *span) Finish() {
+	s.base.Finish()
+}

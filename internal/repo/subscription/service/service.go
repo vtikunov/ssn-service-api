@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/ozonmp/ssn-service-api/internal/tracer"
+
 	"github.com/jmoiron/sqlx"
 
 	sq "github.com/Masterminds/squirrel"
@@ -49,6 +51,9 @@ func NewServiceRepo(db repo.QueryerExecer) *serviceRepo {
 
 // Describe - возвращает из репозитория сервис по его ID.
 func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "serviceRepo.Describe")
+	defer sp.Finish()
+
 	execer := r.getExecer(tx)
 
 	query := sq.Select("id, name, description, is_removed, created_at, updated_at").PlaceholderFormat(sq.Dollar).From("services")
@@ -71,6 +76,9 @@ func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx repo.Qu
 
 // Add - добавляет в репозиторий сервис.
 func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error {
+	sp := tracer.StartSpanFromContext(ctx, "serviceRepo.Add")
+	defer sp.Finish()
+
 	execer := r.getExecer(tx)
 
 	query := sq.Insert("services").PlaceholderFormat(sq.Dollar)
@@ -113,6 +121,9 @@ func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx
 
 // Update - обновляет сервис.
 func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error {
+	sp := tracer.StartSpanFromContext(ctx, "serviceRepo.Update")
+	defer sp.Finish()
+
 	execer := r.getExecer(tx)
 
 	query := sq.Update("services").PlaceholderFormat(sq.Dollar)
@@ -147,6 +158,9 @@ func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service,
 
 // List - возвращает постраничный список сервисов.
 func (r *serviceRepo) List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "serviceRepo.List")
+	defer sp.Finish()
+
 	execer := r.getExecer(tx)
 
 	query := sq.Select("*").PlaceholderFormat(sq.Dollar).From("services")
@@ -179,6 +193,9 @@ func (r *serviceRepo) List(ctx context.Context, offset uint64, limit uint64, tx 
 // Remove - удаляет из репозитория сервис.
 // Возвращает true если сервис существовал в репозитории и успешно удален методом.
 func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) error {
+	sp := tracer.StartSpanFromContext(ctx, "serviceRepo.Remove")
+	defer sp.Finish()
+
 	execer := r.getExecer(tx)
 
 	query := sq.Update("services").PlaceholderFormat(sq.Dollar)

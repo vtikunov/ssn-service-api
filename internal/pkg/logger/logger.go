@@ -5,6 +5,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/opentracing/opentracing-go"
+	"github.com/uber/jaeger-client-go"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -53,11 +56,21 @@ func InitLogger(ctx context.Context, debug bool, kvs ...interface{}) (syncFn fun
 
 // FromContext - получает текущий логгер.
 func FromContext(ctx context.Context) *zap.SugaredLogger {
+	var result *zap.SugaredLogger
 	if attachedLogger, ok := ctx.Value(attachedLoggerKey).(*zap.SugaredLogger); ok {
-		return attachedLogger
+		result = attachedLogger
+	} else {
+		result = globalLogger
 	}
 
-	return globalLogger
+	jaegerSpan := opentracing.SpanFromContext(ctx)
+	if jaegerSpan != nil {
+		if spanCtx, ok := opentracing.SpanFromContext(ctx).Context().(jaeger.SpanContext); ok {
+			result = result.With("trace-id", spanCtx.TraceID())
+		}
+	}
+
+	return result
 }
 
 // ErrorKV - логирует с уровнем Error.

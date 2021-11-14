@@ -3,12 +3,17 @@ package repo
 import (
 	"context"
 
+	"github.com/ozonmp/ssn-service-api/internal/tracer"
+
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
 func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64, tx QueryerExecer) error {
+	sp := tracer.StartSpanFromContext(ctx, "eventRepo.Unlock")
+	defer sp.Finish()
+
 	execer := r.getExecer(tx)
 
 	query := sq.Update("service_events").PlaceholderFormat(sq.Dollar)
