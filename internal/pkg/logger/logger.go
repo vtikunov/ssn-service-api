@@ -15,6 +15,17 @@ var attachedLoggerKey = &ctxKey{}
 
 var globalLogger *zap.SugaredLogger
 
+const (
+	// DebugLevel - DEBUG.
+	DebugLevel = zapcore.DebugLevel
+	// InfoLevel - INFO.
+	InfoLevel = zapcore.InfoLevel
+	// WarnLevel - WARNINGS.
+	WarnLevel = zapcore.WarnLevel
+	// ErrorLevel - ERRORS.
+	ErrorLevel = zapcore.ErrorLevel
+)
+
 // InitLogger - инициализирует логгер.
 func InitLogger(ctx context.Context, debug bool, kvs ...interface{}) (syncFn func()) {
 	loggingLevel := zap.InfoLevel
@@ -76,6 +87,14 @@ func FatalKV(ctx context.Context, message string, kvs ...interface{}) {
 // AttachLogger - передача логгера в контекст.
 func AttachLogger(ctx context.Context, logger *zap.SugaredLogger) context.Context {
 	return context.WithValue(ctx, attachedLoggerKey, logger)
+}
+
+// CloneWithLevel - клонирует логгер с необходимым уровнем логирования.
+func CloneWithLevel(ctx context.Context, newLevel int8) *zap.SugaredLogger {
+	return fromContext(ctx).
+		Desugar().
+		WithOptions(WithLevel(zapcore.Level(newLevel))).
+		Sugar()
 }
 
 // SetLogger - устанавливает глобальный логгер.

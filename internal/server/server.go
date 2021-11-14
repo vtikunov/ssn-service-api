@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/pkg/grpc/interceptor/grpc_logs"
+
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -109,6 +111,7 @@ func (s *GrpcServer) Start(ctx context.Context, cfg *config.Config) error {
 			grpc_prometheus.UnaryServerInterceptor,
 			grpc_opentracing.UnaryServerInterceptor(),
 			grpcrecovery.UnaryServerInterceptor(),
+			grpc_logs.MetadataChangingLogsLevelUnaryServerInterceptor(),
 		)),
 	)
 
