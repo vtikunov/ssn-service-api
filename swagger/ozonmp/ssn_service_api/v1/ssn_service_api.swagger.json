@@ -48,6 +48,13 @@
             "required": false,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "Grpc-Metadata-Log-Level",
+            "in": "header",
+            "required": false,
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -79,6 +86,13 @@
             "schema": {
               "$ref": "#/definitions/v1CreateServiceV1Request"
             }
+          },
+          {
+            "name": "Grpc-Metadata-Log-Level",
+            "in": "header",
+            "required": false,
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -110,6 +124,13 @@
             "schema": {
               "$ref": "#/definitions/v1UpdateServiceV1Request"
             }
+          },
+          {
+            "name": "Grpc-Metadata-Log-Level",
+            "in": "header",
+            "required": false,
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -142,6 +163,13 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "Grpc-Metadata-Log-Level",
+            "in": "header",
+            "required": false,
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
@@ -172,6 +200,13 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "Grpc-Metadata-Log-Level",
+            "in": "header",
+            "required": false,
+            "type": "string",
+            "format": "string"
           }
         ],
         "tags": [
