@@ -4,7 +4,12 @@ import (
 	"context"
 	"log"
 	"net"
+	"os"
 	"testing"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -58,9 +63,23 @@ func prepareClient(ctx context.Context, t *testing.T) (client pb.SsnServiceApiSe
 	return pb.NewSsnServiceApiServiceClient(conn), closeCl
 }
 
+func initLogger() {
+	consoleCore := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		os.Stderr,
+		zap.NewAtomicLevelAt(zap.PanicLevel),
+	)
+	notSugaredLogger := zap.New(consoleCore)
+	sugaredLogger := notSugaredLogger.Sugar()
+	logger.SetLogger(sugaredLogger)
+}
+
 //nolint:dupl
 func TestServiceAPI_CreateServiceV1Request_NameValidation(t *testing.T) {
 	ctx := context.Background()
+
+	initLogger()
+
 	client, closeCl := prepareClient(ctx, t)
 	defer closeCl()
 
@@ -85,6 +104,9 @@ func TestServiceAPI_CreateServiceV1Request_NameValidation(t *testing.T) {
 //nolint:dupl
 func TestServiceAPI_DescribeServiceV1Request_ServiceIDValidation(t *testing.T) {
 	ctx := context.Background()
+
+	initLogger()
+
 	client, closeCl := prepareClient(ctx, t)
 	defer closeCl()
 
@@ -109,6 +131,9 @@ func TestServiceAPI_DescribeServiceV1Request_ServiceIDValidation(t *testing.T) {
 //nolint:dupl
 func TestServiceAPI_ListServiceV1Request_LimitValidation(t *testing.T) {
 	ctx := context.Background()
+
+	initLogger()
+
 	client, closeCl := prepareClient(ctx, t)
 	defer closeCl()
 
@@ -134,6 +159,9 @@ func TestServiceAPI_ListServiceV1Request_LimitValidation(t *testing.T) {
 //nolint:dupl
 func TestServiceAPI_RemoveServiceV1Request_ServiceIDValidation(t *testing.T) {
 	ctx := context.Background()
+
+	initLogger()
+
 	client, closeCl := prepareClient(ctx, t)
 	defer closeCl()
 

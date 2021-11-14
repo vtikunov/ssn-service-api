@@ -3,11 +3,15 @@ package retranslator_test
 import (
 	"context"
 	"errors"
-	"io/ioutil"
-	"log"
+	"os"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"go.uber.org/zap/zapcore"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
+	"go.uber.org/zap"
 
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/config"
 
@@ -36,11 +40,24 @@ type initData struct {
 	isEmitSendError bool
 }
 
+func initLogger() {
+	consoleCore := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		os.Stderr,
+		zap.NewAtomicLevelAt(zap.PanicLevel),
+	)
+	notSugaredLogger := zap.New(consoleCore)
+	sugaredLogger := notSugaredLogger.Sugar()
+	logger.SetLogger(sugaredLogger)
+}
+
 func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
-	log.SetOutput(ioutil.Discard)
 
 	ctrl := gomock.NewController(t)
 	ctx := context.Background()
+
+	initLogger()
+
 	repo := appmocks.NewMockEventRepo(ctrl)
 	sender := appmocks.NewMockEventSender(ctrl)
 
@@ -172,10 +189,12 @@ func TestAllEventsCompleteWhenStoppingByFuncTwo(t *testing.T) {
 }
 
 func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
-	log.SetOutput(ioutil.Discard)
 
 	ctrl := gomock.NewController(t)
 	ctx, cancelCtx := context.WithCancel(context.Background())
+
+	initLogger()
+
 	repo := appmocks.NewMockEventRepo(ctrl)
 	sender := appmocks.NewMockEventSender(ctrl)
 
