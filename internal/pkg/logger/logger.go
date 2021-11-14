@@ -51,7 +51,8 @@ func InitLogger(ctx context.Context, debug bool, kvs ...interface{}) (syncFn fun
 	}
 }
 
-func fromContext(ctx context.Context) *zap.SugaredLogger {
+// FromContext - получает текущий логгер.
+func FromContext(ctx context.Context) *zap.SugaredLogger {
 	if attachedLogger, ok := ctx.Value(attachedLoggerKey).(*zap.SugaredLogger); ok {
 		return attachedLogger
 	}
@@ -61,27 +62,27 @@ func fromContext(ctx context.Context) *zap.SugaredLogger {
 
 // ErrorKV - логирует с уровнем Error.
 func ErrorKV(ctx context.Context, message string, kvs ...interface{}) {
-	fromContext(ctx).Errorw(message, kvs...)
+	FromContext(ctx).Errorw(message, kvs...)
 }
 
 // WarnKV - логирует с уровнем Warning.
 func WarnKV(ctx context.Context, message string, kvs ...interface{}) {
-	fromContext(ctx).Warnw(message, kvs...)
+	FromContext(ctx).Warnw(message, kvs...)
 }
 
 // InfoKV - логирует с уровнем Info.
 func InfoKV(ctx context.Context, message string, kvs ...interface{}) {
-	fromContext(ctx).Infow(message, kvs...)
+	FromContext(ctx).Infow(message, kvs...)
 }
 
 // DebugKV - логирует с уровнем Debug.
 func DebugKV(ctx context.Context, message string, kvs ...interface{}) {
-	fromContext(ctx).Debugw(message, kvs...)
+	FromContext(ctx).Debugw(message, kvs...)
 }
 
 // FatalKV - логирует с уровнем Fatal и завершает работу.
 func FatalKV(ctx context.Context, message string, kvs ...interface{}) {
-	fromContext(ctx).Fatalw(message, kvs...)
+	FromContext(ctx).Fatalw(message, kvs...)
 }
 
 // AttachLogger - передача логгера в контекст.
@@ -91,7 +92,7 @@ func AttachLogger(ctx context.Context, logger *zap.SugaredLogger) context.Contex
 
 // CloneWithLevel - клонирует логгер с необходимым уровнем логирования.
 func CloneWithLevel(ctx context.Context, newLevel int8) *zap.SugaredLogger {
-	return fromContext(ctx).
+	return FromContext(ctx).
 		Desugar().
 		WithOptions(WithLevel(zapcore.Level(newLevel))).
 		Sugar()

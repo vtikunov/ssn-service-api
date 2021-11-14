@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+
 	"github.com/ozonmp/ssn-service-api/internal/pkg/grpc/interceptor/grpc_logs"
 
 	"github.com/jmoiron/sqlx"
@@ -112,6 +114,7 @@ func (s *GrpcServer) Start(ctx context.Context, cfg *config.Config) error {
 			grpc_opentracing.UnaryServerInterceptor(),
 			grpcrecovery.UnaryServerInterceptor(),
 			grpc_logs.MetadataChangingLogsLevelUnaryServerInterceptor(),
+			grpc_zap.PayloadUnaryServerInterceptor(logger.FromContext(ctx).Desugar(), grpc_logs.GetIsEnableDescribeRequestAndResponseDecider()),
 		)),
 	)
 
