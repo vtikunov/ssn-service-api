@@ -40,11 +40,3 @@ database:
   sslmode: disable
   migrations: migrations
   driver: pgx
-
-kafka:
-  capacity: 512
-  topic: "ssn-service-events"
-  groupId: "ssn-service-api"
-  brokers:
-    - "kafka:9092"
-    - "localhost:9094"

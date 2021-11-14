@@ -1,38 +1,38 @@
 package tracer
 
 import (
+	"context"
 	"io"
 
 	"github.com/opentracing/opentracing-go"
-	"github.com/rs/zerolog/log"
 	"github.com/uber/jaeger-client-go"
 
-	"github.com/ozonmp/ssn-service-api/internal/config"
-
 	jaegercfg "github.com/uber/jaeger-client-go/config"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 )
 
 // NewTracer - returns new tracer.
-func NewTracer(cfg *config.Config) (io.Closer, error) {
+func NewTracer(ctx context.Context, serviceName string, host string, port string) (io.Closer, error) {
 	cfgTracer := &jaegercfg.Configuration{
-		ServiceName: cfg.Jaeger.Service,
+		ServiceName: serviceName,
 		Sampler: &jaegercfg.SamplerConfig{
 			Type:  jaeger.SamplerTypeConst,
 			Param: 1,
 		},
 		Reporter: &jaegercfg.ReporterConfig{
 			LogSpans:           true,
-			LocalAgentHostPort: cfg.Jaeger.Host + cfg.Jaeger.Port,
+			LocalAgentHostPort: host + port,
 		},
 	}
 	tracer, closer, err := cfgTracer.NewTracer(jaegercfg.Logger(jaeger.StdLogger))
 	if err != nil {
-		log.Err(err).Msgf("failed init jaeger: %v", err)
+		logger.ErrorKV(ctx, "failed init jaeger", "err", err)
 
 		return nil, err
 	}
 	opentracing.SetGlobalTracer(tracer)
-	log.Info().Msgf("Traces started")
+	logger.InfoKV(ctx, "traces started")
 
 	return closer, nil
 }

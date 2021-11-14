@@ -60,26 +60,18 @@ type Project struct {
 	CommitHash  string
 }
 
-// Metrics - contains all parameters metrics information.
+// Metrics - contains all parameters for metrics information.
 type Metrics struct {
 	Port int    `yaml:"port"`
 	Host string `yaml:"host"`
 	Path string `yaml:"path"`
 }
 
-// Jaeger - contains all parameters metrics information.
+// Jaeger - contains all parameters for metrics information.
 type Jaeger struct {
 	Service string `yaml:"service"`
 	Host    string `yaml:"host"`
 	Port    string `yaml:"port"`
-}
-
-// Kafka - contains all parameters kafka information.
-type Kafka struct {
-	Capacity uint64   `yaml:"capacity"`
-	Topic    string   `yaml:"topic"`
-	GroupID  string   `yaml:"groupId"`
-	Brokers  []string `yaml:"brokers"`
 }
 
 // Status config for service.
@@ -99,7 +91,6 @@ type Config struct {
 	Database Database `yaml:"database"`
 	Metrics  Metrics  `yaml:"metrics"`
 	Jaeger   Jaeger   `yaml:"jaeger"`
-	Kafka    Kafka    `yaml:"kafka"`
 	Status   Status   `yaml:"status"`
 }
 

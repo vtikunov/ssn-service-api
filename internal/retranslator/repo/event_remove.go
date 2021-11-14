@@ -18,21 +18,7 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64, tx QueryerExe
 		return err
 	}
 
-	res, err := execer.ExecContext(ctx, s, args...)
+	_, err = execer.ExecContext(ctx, s, args...)
 
-	if err != nil {
-		return err
-	}
-
-	num, err := res.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if num == 0 {
-		return ErrNoEvent
-	}
-
-	return nil
+	return err
 }

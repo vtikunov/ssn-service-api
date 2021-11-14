@@ -3,10 +3,12 @@ package repo
 import (
 	"context"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
-	"github.com/rs/zerolog/log"
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 )
 
 func (r *eventRepo) Lock(ctx context.Context, n uint64, tx QueryerExecer) ([]subscription.ServiceEvent, error) {
@@ -21,7 +23,8 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64, tx QueryerExecer) ([]sub
 	query = query.Set("status", subscription.Processed)
 	query = query.Set("updated_at", "NOW()")
 	query = query.Where(subQ.Prefix("id IN (").Suffix(")"))
-	query = query.Suffix("RETURNING s.id, s.service_id, s.type, s.status, s.payload, s.updated_at")
+	query = query.Where(sq.Eq{"status": subscription.Deferred})
+	query = query.Suffix("RETURNING id, service_id, type, status, payload, updated_at")
 
 	s, args, err := query.ToSql()
 
@@ -36,7 +39,7 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64, tx QueryerExecer) ([]sub
 		}
 
 		if errCl := rows.Close(); errCl != nil {
-			log.Error().Err(errCl)
+			logger.ErrorKV(ctx, "eventRepo.Lock - failed close rows", "err", errCl)
 		}
 	}()
 

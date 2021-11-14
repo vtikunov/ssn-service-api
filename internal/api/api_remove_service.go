@@ -3,33 +3,28 @@ package api
 import (
 	"context"
 
-	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
+
+	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 )
 
-func (o *serviceAPI) RemoveServiceV1(
-	ctx context.Context,
-	req *pb.RemoveServiceV1Request,
-) (*pb.RemoveServiceV1Response, error) {
+func (o *serviceAPI) RemoveServiceV1(ctx context.Context, req *pb.RemoveServiceV1Request) (*pb.RemoveServiceV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("RemoveServiceV1 - invalid argument")
+		logger.WarnKV(ctx, "RemoveServiceV1 - invalid argument", "err", err)
 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ok, err := o.srvService.Remove(ctx, req.ServiceId)
+	err := o.srvService.Remove(ctx, req.ServiceId)
 	if err != nil {
-		log.Error().Err(err).Msg("RemoveServiceV1 -- failed")
+		logger.ErrorKV(ctx, "RemoveServiceV1 - failed", "err", err)
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Debug().Msg("RemoveServiceV1 - success")
-
-	return &pb.RemoveServiceV1Response{
-		IsFounded: ok,
-	}, nil
+	return &pb.RemoveServiceV1Response{}, nil
 }

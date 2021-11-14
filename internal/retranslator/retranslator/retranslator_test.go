@@ -9,14 +9,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/config"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 
-	repopkg "github.com/ozonmp/ssn-service-api/internal/app/repo"
-	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/app/retranslator"
 	appmocks "github.com/ozonmp/ssn-service-api/internal/mocks/app"
+	repopkg "github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
+	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/retranslator"
 )
 
 type initData struct {
@@ -95,10 +97,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 	).AnyTimes()
 
 	retranslator := retranslatorpkg.NewRetranslator(
-		&retranslatorpkg.Configuration{
+		&config.Retranslator{
 			EventChannelSize: d.eventChannelSize,
-			EventRepo:        repo,
-			EventSender:      sender,
 
 			MaxConsumers:      d.maxConsumers,
 			ConsumerTimeout:   d.consumerTimeout,
@@ -109,6 +109,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 			ProducerTimeout:    d.producerTimeout,
 			ProducerMaxWorkers: d.producerMaxWorkers,
 		},
+		repo,
+		sender,
 	)
 
 	retranslator.Start(ctx)
@@ -229,10 +231,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 	).AnyTimes()
 
 	retranslator := retranslatorpkg.NewRetranslator(
-		&retranslatorpkg.Configuration{
+		&config.Retranslator{
 			EventChannelSize: d.eventChannelSize,
-			EventRepo:        repo,
-			EventSender:      sender,
 
 			MaxConsumers:      d.maxConsumers,
 			ConsumerTimeout:   d.consumerTimeout,
@@ -243,6 +243,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 			ProducerTimeout:    d.producerTimeout,
 			ProducerMaxWorkers: d.producerMaxWorkers,
 		},
+		repo,
+		sender,
 	)
 
 	retranslator.Start(ctx)

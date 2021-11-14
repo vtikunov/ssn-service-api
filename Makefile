@@ -93,3 +93,13 @@ build-go: generate-go .build
 			-X 'github.com/$(SERVICE_PATH)/internal/config.commitHash=$(COMMIT_HASH)' \
 		" \
 		-o ./bin/grpc-server$(shell go env GOEXE) ./cmd/grpc-server/main.go
+
+.PHONY: build-go-retranslator
+build-go-retranslator:
+	go mod download && CGO_ENABLED=0  go build \
+    		-tags='no_mysql no_sqlite3' \
+    		-ldflags=" \
+    			-X 'github.com/$(SERVICE_PATH)/internal/config.version=$(VERSION)' \
+    			-X 'github.com/$(SERVICE_PATH)/internal/config.commitHash=$(COMMIT_HASH)' \
+    		" \
+    		-o ./bin/retranslator$(shell go env GOEXE) ./cmd/retranslator/main.go

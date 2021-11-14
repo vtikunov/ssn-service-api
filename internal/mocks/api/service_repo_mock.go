@@ -81,12 +81,11 @@ func (mr *MockServiceRepoMockRecorder) List(arg0, arg1, arg2, arg3 interface{}) 
 }
 
 // Remove mocks base method.
-func (m *MockServiceRepo) Remove(arg0 context.Context, arg1 uint64, arg2 repo.QueryerExecer) (bool, error) {
+func (m *MockServiceRepo) Remove(arg0 context.Context, arg1 uint64, arg2 repo.QueryerExecer) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Remove indicates an expected call of Remove.

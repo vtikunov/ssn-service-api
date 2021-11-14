@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ozonmp/ssn-service-api/internal/app/repo"
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
 )
 
 // Consumer - воркер-консьюмер

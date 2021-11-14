@@ -6,7 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/ozonmp/ssn-service-api/internal/config"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/config"
 )
 
 func createMetricsServer(cfg *config.Config) *http.Server {

@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	producerpkg "github.com/ozonmp/ssn-service-api/internal/app/producer"
+	producerpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/producer"
 )
 
 type producerFactory interface {

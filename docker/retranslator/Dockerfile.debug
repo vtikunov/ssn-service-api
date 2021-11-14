@@ -1,0 +1,36 @@
+# Builder
+
+FROM golang:1.17-alpine AS builder
+RUN apk add --update make git protoc protobuf protobuf-dev curl
+
+ARG GITHUB_PATH=github.com/ozonmp/ssn-service-api
+
+COPY Makefile /home/${GITHUB_PATH}/Makefile
+COPY go.mod /home/${GITHUB_PATH}/go.mod
+COPY go.sum /home/${GITHUB_PATH}/go.sum
+COPY pkg /home/${GITHUB_PATH}/pkg
+
+WORKDIR /home/${GITHUB_PATH}
+
+COPY . /home/${GITHUB_PATH}
+RUN make build-go-retranslator
+
+RUN go get github.com/go-delve/delve/cmd/dlv
+
+# Retranslator
+
+FROM alpine:latest as server
+ARG GITHUB_PATH=github.com/ozonmp/ssn-service-api
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+
+COPY --from=builder /home/${GITHUB_PATH}/bin/retranslator .
+COPY --from=builder /home/${GITHUB_PATH}/config.retranslator.yml .
+
+COPY --from=builder /go/bin/dlv .
+
+RUN chown root:root grpc-server
+
+EXPOSE 40000
+
+CMD ["./dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "./retranslator"]

@@ -13,7 +13,7 @@ type serviceRepo interface {
 	Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error)
-	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error)
+	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) error
 }
 
 type eventRepo interface {
@@ -181,32 +181,27 @@ func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) 
 
 // Remove - удаляет сервис.
 // Возвращает true если сервис существовал и успешно удален методом.
-func (s serviceService) Remove(ctx context.Context, serviceID uint64) (ok bool, err error) {
+func (s serviceService) Remove(ctx context.Context, serviceID uint64) error {
 	var rmvErr error
-	var rmvOk bool
 
-	err = s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
-		rmvOk, rmvErr = s.srvRepo.Remove(ctx, serviceID, tx)
+	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
+		rmvErr = s.srvRepo.Remove(ctx, serviceID, tx)
 
 		if rmvErr != nil {
 			return rmvErr
 		}
 
-		if rmvOk {
-			return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
-				ServiceID: serviceID,
-				Type:      subscription.Removed,
-				Status:    subscription.Deferred,
-				UpdatedAt: time.Now(),
-			}, tx)
-		}
-
-		return nil
+		return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
+			ServiceID: serviceID,
+			Type:      subscription.Removed,
+			Status:    subscription.Deferred,
+			UpdatedAt: time.Now(),
+		}, tx)
 	})
 
-	if rmvErr != nil || err == nil {
-		return rmvOk, rmvErr
+	if rmvErr != nil {
+		return rmvErr
 	}
 
-	return false, err
+	return err
 }

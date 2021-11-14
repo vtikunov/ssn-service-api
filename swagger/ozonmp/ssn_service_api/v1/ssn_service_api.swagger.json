@@ -251,12 +251,7 @@
       }
     },
     "v1RemoveServiceV1Response": {
-      "type": "object",
-      "properties": {
-        "isFounded": {
-          "type": "boolean"
-        }
-      }
+      "type": "object"
     },
     "v1Service": {
       "type": "object",

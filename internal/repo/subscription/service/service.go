@@ -6,11 +6,11 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/rs/zerolog/log"
 
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 	"github.com/ozonmp/ssn-service-api/internal/repo"
 )
 
@@ -35,7 +35,7 @@ type ServiceRepo interface {
 	Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error)
-	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error)
+	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) error
 }
 
 type serviceRepo struct {
@@ -64,8 +64,6 @@ func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx repo.Qu
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNoService
-	} else if err != nil {
-		return nil, err
 	}
 
 	return &service, err
@@ -92,7 +90,7 @@ func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx
 		}
 
 		if errCl := rows.Close(); errCl != nil {
-			log.Error().Err(errCl)
+			logger.ErrorKV(ctx, "serviceRepo.Add - failed close rows", "err", errCl)
 		}
 	}()
 
@@ -102,15 +100,15 @@ func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx
 
 	if rows.Next() {
 		err = rows.Scan(&service.ID)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
+	} else {
+		err = sql.ErrNoRows
 	}
 
-	return ErrNoService
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Update - обновляет сервис.
@@ -175,12 +173,12 @@ func (r *serviceRepo) List(ctx context.Context, offset uint64, limit uint64, tx 
 		return nil, err
 	}
 
-	return res, err
+	return res, nil
 }
 
 // Remove - удаляет из репозитория сервис.
 // Возвращает true если сервис существовал в репозитории и успешно удален методом.
-func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error) {
+func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) error {
 	execer := r.getExecer(tx)
 
 	query := sq.Update("services").PlaceholderFormat(sq.Dollar)
@@ -189,22 +187,26 @@ func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx repo.Quer
 
 	s, args, err := query.ToSql()
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	res, err := execer.ExecContext(ctx, s, args...)
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	num, err := res.RowsAffected()
 
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return num > 0, nil
+	if num == 0 {
+		return ErrNoService
+	}
+
+	return nil
 }
 
 func (r *serviceRepo) getExecer(tx repo.QueryerExecer) repo.QueryerExecer {

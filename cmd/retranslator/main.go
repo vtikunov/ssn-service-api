@@ -2,26 +2,24 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 
-	"github.com/pressly/goose/v3"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/server"
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/lib/pq"
 
-	"github.com/ozonmp/ssn-service-api/internal/config"
 	"github.com/ozonmp/ssn-service-api/internal/database"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
-	"github.com/ozonmp/ssn-service-api/internal/server"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/config"
 	"github.com/ozonmp/ssn-service-api/internal/tracer"
 )
 
 func main() {
 	ctx := context.Background()
 
-	if err := config.ReadConfigYML("config.yml"); err != nil {
+	if err := config.ReadConfigYML("config.retranslator.yml"); err != nil {
 		logger.FatalKV(ctx, "failed init configuration", "err", err)
 	}
 
@@ -29,9 +27,6 @@ func main() {
 
 	syncLogger := logger.InitLogger(ctx, cfg.Project.Debug, "service", cfg.Project.Name)
 	defer syncLogger()
-
-	migration := flag.Bool("migration", true, "Defines the migration start option")
-	flag.Parse()
 
 	logger.InfoKV(ctx, fmt.Sprintf("Starting service: %s", cfg.Project.Name),
 		"version", cfg.Project.Version,
@@ -59,14 +54,6 @@ func main() {
 		}
 	}()
 
-	if *migration {
-		if err = goose.Up(db.DB, cfg.Database.Migrations); err != nil {
-			logger.ErrorKV(ctx, "migration failed", "err", err)
-
-			return
-		}
-	}
-
 	tracing, err := tracer.NewTracer(ctx, cfg.Jaeger.Service, cfg.Jaeger.Host, cfg.Jaeger.Port)
 	if err != nil {
 		logger.ErrorKV(ctx, "failed init tracing", "err", err)
@@ -79,9 +66,5 @@ func main() {
 		}
 	}()
 
-	if err := server.NewGrpcServer(db).Start(ctx, &cfg); err != nil {
-		logger.ErrorKV(ctx, "failed creating gRPC server", "err", err)
-
-		return
-	}
+	server.NewRetranslatorServer(db).Start(ctx, &cfg)
 }

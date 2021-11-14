@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/ozonmp/ssn-service-api/internal/config"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/config"
 )
 
 func createStatusServer(ctx context.Context, cfg *config.Config, isReady *atomic.Value) *http.Server {

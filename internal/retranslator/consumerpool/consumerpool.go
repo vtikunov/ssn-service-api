@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	consumerpkg "github.com/ozonmp/ssn-service-api/internal/app/consumer"
+	consumerpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/consumer"
 )
 
 type consumerFactory interface {

@@ -9,8 +9,8 @@ import (
 
 	"github.com/gammazero/workerpool"
 
-	"github.com/ozonmp/ssn-service-api/internal/app/repo"
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
 )
 
 // Producer - общий интерфейс воркеров-продьюсеров для совместимости между пакетами.

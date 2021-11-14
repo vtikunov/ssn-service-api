@@ -819,8 +819,6 @@ func (m *RemoveServiceV1Response) Validate() error {
 		return nil
 	}
 
-	// no validation rules for IsFounded
-
 	return nil
 }
 

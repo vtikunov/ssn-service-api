@@ -4,7 +4,7 @@ services:
   ssn-service-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/grpc-server/Dockerfile
     restart: unless-stopped
     logging:
       driver: 'gelf'
@@ -15,10 +15,8 @@ services:
       - ssnnw
     depends_on:
       - postgres
-      - kafka
     links:
       - postgres
-      - kafka
     ports:
       - "8082:8082" # gRPC
       - "9100:9100" # Metrics prometheus
@@ -33,6 +31,38 @@ services:
     volumes:
       - ./migrations:/root/migrations
       - ./config.yml:/root/config.yml
+    command: ["./grpc-server", "--migration"]
+
+  ssn-service-api-events-retranslator:
+    build:
+      context: .
+      dockerfile: docker/retranslator/Dockerfile
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ssn-service-api-events-retranslator
+    networks:
+      - ssnnw
+    depends_on:
+      - postgres
+      - kafka
+    links:
+      - postgres
+      - kafka
+    ports:
+      - "9101:9101" # Metrics prometheus
+      - "8001:8001" # Status prometheus
+      - "40001:40000" # Debug port
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8001/live' ]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - ./config.retranslator.yml:/root/config.retranslator.yml
 
   postgres:
     image: postgres:latest
@@ -41,7 +71,7 @@ services:
       timeout: 45s
       interval: 10s
       retries: 10
-    restart: always
+    restart: unless-stopped
     logging:
       driver: 'gelf'
       options:
@@ -118,7 +148,7 @@ services:
 
   swagger-ui:
     image: swaggerapi/swagger-ui
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./swagger:/swagger
     environment:
@@ -175,6 +205,7 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    restart: unless-stopped
     environment:
       - http.host=0.0.0.0
       - transport.host=localhost
@@ -196,7 +227,7 @@ services:
 
   mongo:
     image: mongo:4.2
-    restart: always
+    restart: unless-stopped
     networks:
       - ssnnw
     volumes:
@@ -231,10 +262,11 @@ services:
       - "12201:12201"
       # GELF UDP
       - "12201:12201/udp"
-    restart: always
+    restart: unless-stopped
 
   nginx:
     image: nginx:latest
+    restart: unless-stopped
     depends_on:
       - ssn-service-api
       - swagger-ui
@@ -250,6 +282,7 @@ services:
 
   pypiserver:
     image: pypiserver/pypiserver:latest
+    restart: unless-stopped
     networks:
       - ssnnw
     ports:

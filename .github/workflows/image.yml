@@ -43,6 +43,14 @@ jobs:
 
       - uses: docker/build-push-action@v2
         with:
+          file: ./docker/grpc-server/Dockerfile
           push: true
           # tags: <org-name>/<repo-name>/<app-name>:${{ env.IMAGE_TAG }}
           tags: ghcr.io/${{ github.repository_owner }}/ssn-service-api/server:${{ env.IMAGE_TAG }}
+
+      - uses: docker/build-push-action@v2
+        with:
+          file: ./docker/retranslator/Dockerfile
+          push: true
+          # tags: <org-name>/<repo-name>/<app-name>:${{ env.IMAGE_TAG }}
+          tags: ghcr.io/${{ github.repository_owner }}/ssn-service-api/events-retranslator:${{ env.IMAGE_TAG }}
