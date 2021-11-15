@@ -87,7 +87,9 @@ services:
       APP_DB_PASS: docker
     networks:
       - ssnnw
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     volumes:
+      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./_data/pgdata:/var/lib/postgresql/data
       - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
 
