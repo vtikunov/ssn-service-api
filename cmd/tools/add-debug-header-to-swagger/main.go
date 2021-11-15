@@ -22,6 +22,7 @@ func main() {
 	f, err := os.Open(filename)
 	if err != nil {
 		fmt.Printf("Can not open file: %s", err.Error())
+		return
 	}
 	defer func() {
 		if errCl := f.Close(); errCl != nil {

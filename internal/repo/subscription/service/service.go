@@ -110,12 +110,12 @@ func (r *serviceRepo) Add(ctx context.Context, service *subscription.Service, tx
 	}
 
 	if rows.Next() {
-		err = rows.Scan(&service.ID)
-	} else {
-		err = sql.ErrNoRows
+		if err = rows.Scan(&service.ID); err != nil {
+			return err
+		}
 	}
 
-	if err != nil {
+	if err = rows.Err(); err != nil {
 		return err
 	}
 
