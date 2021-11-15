@@ -5,11 +5,11 @@ project:
 
 retranslator:
   eventChannelSize: 100
-  maxConsumers: 10
+  maxConsumers: 4
   consumerTimeout: 500ms
   consumerBatchTime: 100ms
-  consumerBatchSize: 500
-  maxProducers: 10
+  consumerBatchSize: 1000
+  maxProducers: 4
   producerTimeout: 500ms
   producerMaxWorkers: 2
 
