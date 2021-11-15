@@ -2,6 +2,7 @@ package sender
 
 import (
 	"context"
+	"time"
 
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 
@@ -24,5 +25,7 @@ func NewDummySender() *dummySender {
 
 func (d *dummySender) Send(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
 	logger.DebugKV(ctx, "event sent", "eventID", serviceEvent.ID, "serviceID", serviceEvent.ServiceID)
+	time.Sleep(time.Millisecond * 30)
+
 	return nil
 }
