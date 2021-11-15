@@ -62,9 +62,10 @@ type Project struct {
 
 // Metrics - contains all parameters for metrics information.
 type Metrics struct {
-	Port int    `yaml:"port"`
-	Host string `yaml:"host"`
-	Path string `yaml:"path"`
+	Port      int    `yaml:"port"`
+	Host      string `yaml:"host"`
+	Path      string `yaml:"path"`
+	Subsystem string `yaml:"subsystem"`
 }
 
 // Jaeger - contains all parameters for metrics information.

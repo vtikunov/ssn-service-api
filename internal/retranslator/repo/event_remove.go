@@ -3,6 +3,8 @@ package repo
 import (
 	"context"
 
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/metrics"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -19,6 +21,10 @@ func (r *eventRepo) Remove(ctx context.Context, eventIDs []uint64, tx QueryerExe
 	}
 
 	_, err = execer.ExecContext(ctx, s, args...)
+
+	if err == nil {
+		metrics.SubEventsCountInPool(uint(len(eventIDs)))
+	}
 
 	return err
 }

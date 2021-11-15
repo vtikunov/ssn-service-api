@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/metrics"
+
 	"github.com/ozonmp/ssn-service-api/internal/tracer"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
@@ -77,6 +79,10 @@ func (s *serviceService) Add(ctx context.Context, service *subscription.Service)
 		return addErr
 	}
 
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Created)
+	}
+
 	return err
 }
 
@@ -106,6 +112,10 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 
 	if updErr != nil {
 		return updErr
+	}
+
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Updated)
 	}
 
 	return err
@@ -148,6 +158,10 @@ func (s *serviceService) UpdateName(ctx context.Context, serviceID uint64, name 
 		return updErr
 	}
 
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Updated)
+	}
+
 	return err
 }
 
@@ -188,6 +202,10 @@ func (s *serviceService) UpdateDescription(ctx context.Context, serviceID uint64
 		return updErr
 	}
 
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Updated)
+	}
+
 	return err
 }
 
@@ -224,6 +242,10 @@ func (s serviceService) Remove(ctx context.Context, serviceID uint64) error {
 
 	if rmvErr != nil {
 		return rmvErr
+	}
+
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Removed)
 	}
 
 	return err

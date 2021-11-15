@@ -3,6 +3,8 @@ package repo
 import (
 	"context"
 
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/metrics"
+
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
@@ -37,6 +39,8 @@ func (r *eventRepo) Unlock(ctx context.Context, eventIDs []uint64, tx QueryerExe
 	if num == 0 {
 		return ErrNoEvent
 	}
+
+	metrics.SubEventsCountInPool(uint(len(eventIDs)))
 
 	return nil
 }

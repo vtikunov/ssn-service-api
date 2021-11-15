@@ -3,6 +3,8 @@ package repo
 import (
 	"context"
 
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/metrics"
+
 	"github.com/jmoiron/sqlx"
 
 	sq "github.com/Masterminds/squirrel"
@@ -58,6 +60,8 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64, tx QueryerExecer) ([]sub
 	for _, event := range srvEvents {
 		res = append(res, *event.convertToServiceEvent())
 	}
+
+	metrics.AddEventsCountInPool(uint(len(res)))
 
 	return res, err
 }

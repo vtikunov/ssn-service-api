@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/metrics"
+
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/server"
 
 	_ "github.com/jackc/pgx/v4"
@@ -34,6 +36,8 @@ func main() {
 		"debug", cfg.Project.Debug,
 		"environment", cfg.Project.Environment,
 	)
+
+	metrics.InitMetrics(&cfg)
 
 	dsn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=%v",
 		cfg.Database.Host,

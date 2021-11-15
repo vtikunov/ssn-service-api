@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/ozonmp/ssn-service-api/internal/metrics"
+
 	"github.com/pressly/goose/v3"
 
 	_ "github.com/jackc/pgx/v4"
@@ -39,6 +41,8 @@ func main() {
 		"debug", cfg.Project.Debug,
 		"environment", cfg.Project.Environment,
 	)
+
+	metrics.InitMetrics(&cfg)
 
 	dsn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=%v",
 		cfg.Database.Host,

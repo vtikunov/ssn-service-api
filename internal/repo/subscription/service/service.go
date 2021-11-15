@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/ozonmp/ssn-service-api/internal/metrics"
+
 	"github.com/ozonmp/ssn-service-api/internal/tracer"
 
 	"github.com/jmoiron/sqlx"
@@ -68,6 +70,7 @@ func (r *serviceRepo) Describe(ctx context.Context, serviceID uint64, tx repo.Qu
 	err = execer.QueryRowxContext(ctx, s, args...).StructScan(&service)
 
 	if errors.Is(err, sql.ErrNoRows) {
+		metrics.AddNotFoundErrorsTotal(1)
 		return nil, ErrNoService
 	}
 
@@ -150,6 +153,7 @@ func (r *serviceRepo) Update(ctx context.Context, service *subscription.Service,
 	}
 
 	if num == 0 {
+		metrics.AddNotFoundErrorsTotal(1)
 		return ErrNoService
 	}
 
@@ -220,6 +224,7 @@ func (r *serviceRepo) Remove(ctx context.Context, serviceID uint64, tx repo.Quer
 	}
 
 	if num == 0 {
+		metrics.AddNotFoundErrorsTotal(1)
 		return ErrNoService
 	}
 
