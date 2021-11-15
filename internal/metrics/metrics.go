@@ -22,7 +22,7 @@ func InitMetrics(cfg *config.Config) {
 		Subsystem: cfg.Metrics.Subsystem,
 		Name:      "cud_total",
 		Help:      "Total CUD",
-	}, []string{"status"})
+	}, []string{"type"})
 }
 
 // AddNotFoundErrorsTotal - увеличивает значение счетчика ошибок отсутствия объекта.

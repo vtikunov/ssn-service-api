@@ -61,7 +61,9 @@ func (r *eventRepo) Lock(ctx context.Context, n uint64, tx QueryerExecer) ([]sub
 		res = append(res, *event.convertToServiceEvent())
 	}
 
-	metrics.AddEventsCountInPool(uint(len(res)))
+	if err == nil {
+		metrics.AddEventsCountInPool(uint(len(res)))
+	}
 
 	return res, err
 }
