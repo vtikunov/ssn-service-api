@@ -48,8 +48,9 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
     		curl -sSL0 https://github.com/bufbuild/buf/releases/download/$(BUF_VERSION)/buf-$(OS_NAME)-$(OS_ARCH)$(shell go env GOEXE) --create-dirs -o "$(BUF_EXE)" && \
     		chmod +x "$(BUF_EXE)")
 
-.generate-go:
-	$(BUF_EXE) generate && go run cmd/tools/add-debug-header-to-swagger/main.go swagger/ozonmp/ssn_service_api/v1/ssn_service_api.swagger.json
+.generate-go: .build-go-tools
+	$(BUF_EXE) generate
+	./bin/add-debug-header-to-swagger swagger/ozonmp/ssn_service_api/v1/ssn_service_api.swagger.json
 
 .generate-python:
 	$(BUF_EXE) generate --template buf.gen.python.yaml
@@ -103,3 +104,12 @@ build-go-retranslator:
     			-X 'github.com/$(SERVICE_PATH)/internal/config.commitHash=$(COMMIT_HASH)' \
     		" \
     		-o ./bin/retranslator$(shell go env GOEXE) ./cmd/retranslator/main.go
+
+.build-go-tools:
+	go mod download && CGO_ENABLED=0  go build \
+    		-tags='no_mysql no_sqlite3' \
+    		-ldflags=" \
+    			-X 'github.com/$(SERVICE_PATH)/internal/config.version=$(VERSION)' \
+    			-X 'github.com/$(SERVICE_PATH)/internal/config.commitHash=$(COMMIT_HASH)' \
+    		" \
+    		-o ./bin/add-debug-header-to-swagger$(shell go env GOEXE) ./cmd/tools/add-debug-header-to-swagger/main.go
