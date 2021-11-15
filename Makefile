@@ -49,7 +49,7 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
     		chmod +x "$(BUF_EXE)")
 
 .generate-go:
-	$(BUF_EXE) generate
+	$(BUF_EXE) generate && go run cmd/tools/add-debug-header-to-swagger/main.go swagger/ozonmp/ssn_service_api/v1/ssn_service_api.swagger.json
 
 .generate-python:
 	$(BUF_EXE) generate --template buf.gen.python.yaml
