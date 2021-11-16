@@ -7,15 +7,6 @@ import (
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-)
-
-var (
-	totalServiceNotFound = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "ssn_service_api_service_not_found_total",
-		Help: "Total number of services that were not found",
-	})
 )
 
 type serviceService interface {
@@ -23,7 +14,7 @@ type serviceService interface {
 	Add(ctx context.Context, service *subscription.Service) error
 	Update(ctx context.Context, service *subscription.Service) error
 	List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error)
-	Remove(ctx context.Context, serviceID uint64) (ok bool, err error)
+	Remove(ctx context.Context, serviceID uint64) error
 }
 
 type serviceAPI struct {

@@ -3,6 +3,8 @@ package servicerepo
 import (
 	"context"
 
+	"github.com/ozonmp/ssn-service-api/internal/tracer"
+
 	"google.golang.org/protobuf/encoding/protojson"
 
 	sq "github.com/Masterminds/squirrel"
@@ -32,6 +34,9 @@ func NewEventRepo(db repo.QueryerExecer) *eventRepo {
 
 // Add - добавляет события в репозиторий.
 func (r *eventRepo) Add(ctx context.Context, event *subscription.ServiceEvent, tx repo.QueryerExecer) error {
+	sp := tracer.StartSpanFromContext(ctx, "eventRepo.Add")
+	defer sp.Finish()
+
 	execer := r.getExecer(tx)
 
 	pbSrvPayload := &pb.ServiceEventPayload{}

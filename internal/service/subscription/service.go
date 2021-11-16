@@ -4,6 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/ozonmp/ssn-service-api/internal/metrics"
+
+	"github.com/ozonmp/ssn-service-api/internal/tracer"
+
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/repo"
 )
@@ -13,7 +17,7 @@ type serviceRepo interface {
 	Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) error
 	List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error)
-	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (ok bool, err error)
+	Remove(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) error
 }
 
 type eventRepo interface {
@@ -41,12 +45,18 @@ func NewServiceService(srvRepo serviceRepo, eventRepo eventRepo, txs transaction
 
 // Describe - возвращает сервис по его ID.
 func (s *serviceService) Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "service.Describe")
+	defer sp.Finish()
+
 	return s.srvRepo.Describe(ctx, serviceID, nil)
 }
 
 // Add - добавляет сервис.
 // nolint:dupl
 func (s *serviceService) Add(ctx context.Context, service *subscription.Service) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.Add")
+	defer sp.Finish()
+
 	var addErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -69,12 +79,19 @@ func (s *serviceService) Add(ctx context.Context, service *subscription.Service)
 		return addErr
 	}
 
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Created)
+	}
+
 	return err
 }
 
 // Update - обновляет сервис.
 // nolint:dupl
 func (s *serviceService) Update(ctx context.Context, service *subscription.Service) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.Update")
+	defer sp.Finish()
+
 	var updErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -97,12 +114,19 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 		return updErr
 	}
 
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Updated)
+	}
+
 	return err
 }
 
 // UpdateName - обновляет наименование сервиса.
 // nolint:dupl
 func (s *serviceService) UpdateName(ctx context.Context, serviceID uint64, name string) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.UpdateName")
+	defer sp.Finish()
+
 	var updErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -134,12 +158,19 @@ func (s *serviceService) UpdateName(ctx context.Context, serviceID uint64, name 
 		return updErr
 	}
 
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Updated)
+	}
+
 	return err
 }
 
 // UpdateDescription - обновляет описание сервиса.
 // nolint:dupl
 func (s *serviceService) UpdateDescription(ctx context.Context, serviceID uint64, desc string) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.UpdateDescription")
+	defer sp.Finish()
+
 	var updErr error
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
@@ -171,42 +202,51 @@ func (s *serviceService) UpdateDescription(ctx context.Context, serviceID uint64
 		return updErr
 	}
 
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Updated)
+	}
+
 	return err
 }
 
 // List - возвращает постраничный список сервисов.
 func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "service.List")
+	defer sp.Finish()
+
 	return s.srvRepo.List(ctx, offset, limit, nil)
 }
 
 // Remove - удаляет сервис.
 // Возвращает true если сервис существовал и успешно удален методом.
-func (s serviceService) Remove(ctx context.Context, serviceID uint64) (ok bool, err error) {
-	var rmvErr error
-	var rmvOk bool
+func (s serviceService) Remove(ctx context.Context, serviceID uint64) error {
+	sp := tracer.StartSpanFromContext(ctx, "service.Remove")
+	defer sp.Finish()
 
-	err = s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
-		rmvOk, rmvErr = s.srvRepo.Remove(ctx, serviceID, tx)
+	var rmvErr error
+
+	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
+		rmvErr = s.srvRepo.Remove(ctx, serviceID, tx)
 
 		if rmvErr != nil {
 			return rmvErr
 		}
 
-		if rmvOk {
-			return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
-				ServiceID: serviceID,
-				Type:      subscription.Removed,
-				Status:    subscription.Deferred,
-				UpdatedAt: time.Now(),
-			}, tx)
-		}
-
-		return nil
+		return s.eventRepo.Add(ctx, &subscription.ServiceEvent{
+			ServiceID: serviceID,
+			Type:      subscription.Removed,
+			Status:    subscription.Deferred,
+			UpdatedAt: time.Now(),
+		}, tx)
 	})
 
-	if rmvErr != nil || err == nil {
-		return rmvOk, rmvErr
+	if rmvErr != nil {
+		return rmvErr
 	}
 
-	return false, err
+	if err == nil {
+		metrics.AddCudCountTotal(1, subscription.Removed)
+	}
+
+	return err
 }

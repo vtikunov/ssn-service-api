@@ -4,21 +4,19 @@ import (
 	"context"
 	"time"
 
-	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
-
-	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
+
+	pb "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
 )
 
-func (o *serviceAPI) CreateServiceV1(
-	ctx context.Context,
-	req *pb.CreateServiceV1Request,
-) (*pb.CreateServiceV1Response, error) {
+func (o *serviceAPI) CreateServiceV1(ctx context.Context, req *pb.CreateServiceV1Request) (*pb.CreateServiceV1Response, error) {
 
 	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("CreateServiceV1 - invalid argument")
+		logger.WarnKV(ctx, "CreateServiceV1 - invalid argument", "err", err)
 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -26,12 +24,10 @@ func (o *serviceAPI) CreateServiceV1(
 	service := subscription.Service{Name: req.Name, Description: req.Description, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
 	if err := o.srvService.Add(ctx, &service); err != nil {
-		log.Error().Err(err).Msg("CreateServiceV1 -- failed")
+		logger.ErrorKV(ctx, "CreateServiceV1 - failed", "err", err)
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
-	log.Debug().Msg("CreateServiceV1 - success")
 
 	return &pb.CreateServiceV1Response{
 		ServiceId: service.ID,

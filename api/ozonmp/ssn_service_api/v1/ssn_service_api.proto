@@ -93,7 +93,6 @@ message RemoveServiceV1Request {
 }
 
 message RemoveServiceV1Response {
-  bool is_founded = 1;
 }
 
 message ServiceEventPayload {

@@ -27,8 +27,12 @@ jobs:
           architecture: 'x64'
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build
+      - name: Build grpc-service
         shell: bash
         run: |
           make deps
           make build
+      - name: Build retranslator
+        shell: bash
+        run: |
+          make build-go-retranslator

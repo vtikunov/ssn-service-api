@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/ozonmp/ssn-service-api/internal/repo"
-
 	"github.com/jmoiron/sqlx"
-	"github.com/rs/zerolog/log"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
+	"github.com/ozonmp/ssn-service-api/internal/repo"
 )
 
 type transactionalSession struct {
@@ -31,7 +31,7 @@ func (ts *transactionalSession) Execute(ctx context.Context, fn func(ctx context
 	if err := fn(ctx, tx); err != nil {
 		errRb := tx.Rollback()
 		if errRb != nil {
-			log.Error().Err(errRb).Msg("Rollback transaction error")
+			logger.ErrorKV(ctx, "rollback transaction failed", "err", errRb)
 		}
 
 		return err

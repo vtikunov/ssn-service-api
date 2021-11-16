@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
-
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 )
 
 func setupServiceRepo() (*serviceRepo, sqlmock.Sqlmock) {
@@ -114,7 +114,7 @@ func Test_ServiceRemoveSQL(t *testing.T) {
 		WithArgs(true, 1, false).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	_, err := r.Remove(ctx, 1, nil)
+	err := r.Remove(ctx, 1, nil)
 
 	require.NoError(t, err)
 }

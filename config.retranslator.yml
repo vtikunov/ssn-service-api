@@ -1,0 +1,50 @@
+project:
+  name: Ozon Marketplace Subscription Service Events Retranslator
+  debug: true
+  environment: development
+
+retranslator:
+  eventChannelSize: 100
+  maxConsumers: 4
+  consumerTimeout: 500ms
+  consumerBatchTime: 100ms
+  consumerBatchSize: 1000
+  maxProducers: 4
+  producerTimeout: 500ms
+  producerMaxWorkers: 2
+
+metrics:
+  host: 0.0.0.0
+  port: 9101
+  path: /metrics
+  subsystem: ssn_service_event_retranslator
+
+jaeger:
+  service: "ssn-service-api-events-retranslator"
+  host: "jaeger"
+  port: ":6831"
+
+status:
+  host: 0.0.0.0
+  port: 8001
+  livenessPath: /live
+  readinessPath: /ready
+  versionPath: /version
+
+database:
+  host: postgres
+  port: 5432
+  user: docker
+  password: docker
+  name: ssn_service_api
+  sslmode: disable
+  migrations: migrations
+  driver: pgx
+
+kafka:
+  capacity: 512
+  topic: "ssn-service-events"
+  groupId: "ssn-service-api"
+  brokers:
+    - "kafka:9092"
+    - "localhost:9094"
