@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/opentracing/opentracing-go/log"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	}
 	defer func() {
 		if errCl := f.Close(); errCl != nil {
-			log.Error(errCl)
+			log.Error().Err(errCl).Msg("failed closing file")
 		}
 	}()
 
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	if err = scanner.Err(); err != nil {
-		log.Error(err)
+		log.Error().Err(err).Msg("read file error")
 		return
 	}
 
@@ -57,7 +57,7 @@ func main() {
 	err = ioutil.WriteFile(filename, []byte(strings.Join(lines, "\n")), 0644)
 
 	if err != nil {
-		log.Error(err)
+		log.Error().Err(err).Msg("write file error")
 	}
 
 	return
