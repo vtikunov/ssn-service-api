@@ -51,6 +51,7 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
 .generate-go: .build-go-tools
 	$(BUF_EXE) generate
 	./bin/add-debug-header-to-swagger swagger/ozonmp/ssn_service_api/v1/ssn_service_api.swagger.json
+	protoc -o api/ozonmp/ssn_service_api/v1/ssn_service_api.desc  -I api --include_imports api/ozonmp/ssn_service_api/v1/ssn_service_api.proto
 
 .generate-python:
 	$(BUF_EXE) generate --template buf.gen.python.yaml

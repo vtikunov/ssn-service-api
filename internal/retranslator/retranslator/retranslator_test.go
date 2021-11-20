@@ -20,7 +20,7 @@ import (
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 
-	appmocks "github.com/ozonmp/ssn-service-api/internal/mocks/app"
+	retranslatormocks "github.com/ozonmp/ssn-service-api/internal/mocks/retranslator"
 	repopkg "github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
 	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/retranslator"
 )
@@ -58,8 +58,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	initLogger()
 
-	repo := appmocks.NewMockEventRepo(ctrl)
-	sender := appmocks.NewMockEventSender(ctrl)
+	repo := retranslatormocks.NewMockEventRepo(ctrl)
+	sender := retranslatormocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
 	//nolint:dupl
@@ -98,8 +98,8 @@ func SuiteAllEventsCompleteWhenStoppingByFunc(t *testing.T, d initData) {
 
 	var sendCount int64
 	var sendErrorCount int64
-	sender.EXPECT().Send(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
+	sender.EXPECT().Send(gomock.Any()).DoAndReturn(
+		func(serviceEvent *subscription.ServiceEvent) error {
 			if d.isEmitSendError {
 				if serviceEvent.ID%2 == 0 {
 					atomic.AddInt64(&sendErrorCount, 1)
@@ -195,8 +195,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	initLogger()
 
-	repo := appmocks.NewMockEventRepo(ctrl)
-	sender := appmocks.NewMockEventSender(ctrl)
+	repo := retranslatormocks.NewMockEventRepo(ctrl)
+	sender := retranslatormocks.NewMockEventSender(ctrl)
 
 	var lockCount int64
 	//nolint:dupl
@@ -235,8 +235,8 @@ func SuiteAllEventsCompleteWhenStoppingByContext(t *testing.T, d initData) {
 
 	var sendCount int64
 	var sendErrorCount int64
-	sender.EXPECT().Send(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, serviceEvent *subscription.ServiceEvent) error {
+	sender.EXPECT().Send(gomock.Any()).DoAndReturn(
+		func(serviceEvent *subscription.ServiceEvent) error {
 			if d.isEmitSendError {
 				if serviceEvent.ID%2 == 0 {
 					atomic.AddInt64(&sendErrorCount, 1)

@@ -10,23 +10,31 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
+
 	"github.com/jmoiron/sqlx"
 
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/config"
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
-	"github.com/ozonmp/ssn-service-api/internal/retranslator/sender"
-
 	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/retranslator"
 )
 
+type eventSender interface {
+	Send(event *subscription.ServiceEvent) error
+}
+
 type retranslatorServer struct {
-	db *sqlx.DB
+	db          *sqlx.DB
+	eventSender eventSender
 }
 
 // NewRetranslatorServer - создает сервис-окружение для запуска ретранслятора.
-func NewRetranslatorServer(db *sqlx.DB) *retranslatorServer {
-	return &retranslatorServer{db: db}
+func NewRetranslatorServer(db *sqlx.DB, eventSender eventSender) *retranslatorServer {
+	return &retranslatorServer{
+		db:          db,
+		eventSender: eventSender,
+	}
 }
 
 func (s *retranslatorServer) Start(ctx context.Context, cfg *config.Config) {
@@ -61,7 +69,7 @@ func (s *retranslatorServer) Start(ctx context.Context, cfg *config.Config) {
 		ctx,
 		&cfg.Retranslator,
 		repo.NewEventRepo(s.db),
-		sender.NewDummySender(),
+		s.eventSender,
 	)
 
 	retranslator.Start(ctx)

@@ -100,3 +100,11 @@ message ServiceEventPayload {
   string name = 2 [(validate.rules).string={ min_len: 1, max_len: 100 }];
   string description = 3 [(validate.rules).string={ min_len: 1, max_len: 200 }];
 }
+
+message ServiceEvent {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+  uint64 service_id = 2 [(validate.rules).uint64.gt = 0];
+  string type = 3 [(validate.rules).string={ min_len: 1 }];
+  string subtype = 4 [(validate.rules).string={ min_len: 1 }];
+  ServiceEventPayload payload = 5;
+}
