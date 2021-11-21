@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: grpc-ssn-service-api
-Version: 0.5.0
+Version: 0.6.0
 Summary: GRPC python client for ssn-service-api
 Home-page: https://github.com/ozonmp/ssn-service-api
 Author: vtikunov

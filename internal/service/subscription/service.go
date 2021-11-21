@@ -218,7 +218,6 @@ func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) 
 }
 
 // Remove - удаляет сервис.
-// Возвращает true если сервис существовал и успешно удален методом.
 func (s serviceService) Remove(ctx context.Context, serviceID uint64) error {
 	sp := tracer.StartSpanFromContext(ctx, "service.Remove")
 	defer sp.Finish()

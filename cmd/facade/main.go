@@ -11,18 +11,18 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/lib/pq"
 
-	"github.com/ozonmp/ssn-service-api/internal/config"
 	"github.com/ozonmp/ssn-service-api/internal/database"
-	"github.com/ozonmp/ssn-service-api/internal/metrics"
+	"github.com/ozonmp/ssn-service-api/internal/facade/config"
+	"github.com/ozonmp/ssn-service-api/internal/facade/metrics"
+	"github.com/ozonmp/ssn-service-api/internal/facade/server"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
-	"github.com/ozonmp/ssn-service-api/internal/server"
 	"github.com/ozonmp/ssn-service-api/internal/tracer"
 )
 
 func main() {
 	ctx := context.Background()
 
-	if err := config.ReadConfigYML("config.yml"); err != nil {
+	if err := config.ReadConfigYML("config.facade.yml"); err != nil {
 		logger.FatalKV(ctx, "failed init configuration", "err", err)
 	}
 
@@ -82,9 +82,5 @@ func main() {
 		}
 	}()
 
-	if err := server.NewGrpcServer(db).Start(ctx, &cfg); err != nil {
-		logger.ErrorKV(ctx, "failed creating gRPC server", "err", err)
-
-		return
-	}
+	server.NewConsumerServer(db).Start(ctx, &cfg)
 }

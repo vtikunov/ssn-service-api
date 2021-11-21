@@ -29,7 +29,7 @@ services:
       retries: 3
       start_period: 20s
     volumes:
-      - ./migrations:/root/migrations
+      - ./migrations/grpc-server:/root/migrations/grpc-server
       - ./config.yml:/root/config.yml
     command: ["./grpc-server", "--migration"]
 
@@ -66,6 +66,41 @@ services:
     volumes:
       - ./config.retranslator.yml:/root/config.retranslator.yml
 
+  ssn-service-facade:
+    build:
+      context: .
+      dockerfile: docker/facade/Dockerfile
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ssn-service-facade
+    networks:
+      - ssnnw
+    depends_on:
+      - postgres-facade
+      - kafka-1
+      - kafka-2
+    links:
+      - postgres-facade
+      - kafka-1
+      - kafka-2
+    ports:
+      - "9102:9101" # Metrics prometheus
+      - "8002:8001" # Status prometheus
+      - "40002:40000" # Debug port
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8002/live' ]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - ./migrations/facade:/root/migrations/facade
+      - ./config.facade.yml:/root/config.facade.yml
+    command: [ "./facade", "--migration" ]
+
   postgres:
     image: postgres:latest
     healthcheck:
@@ -93,6 +128,35 @@ services:
     volumes:
       - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./_data/pgdata:/var/lib/postgresql/data
+      - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+
+  postgres-facade:
+    image: postgres:latest
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ssn_service
+      APP_DB_USER: facade
+      APP_DB_PASS: facade
+    networks:
+      - ssnnw
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    volumes:
+      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./_data/pgdata_1:/var/lib/postgresql/data
       - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
 
   zookeeper:
