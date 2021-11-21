@@ -102,6 +102,25 @@ services:
     command: [ "./facade", "--migration" ]
 
   postgres:
+    image: edoburu/pgbouncer
+    environment:
+      - DB_USER=docker
+      - DB_PASSWORD=docker
+      - DB_HOST=postgres-base
+      - DB_NAME=ssn_service_api
+      - POOL_MODE=session
+      - ADMIN_USERS=docker
+      - AUTH_TYPE=plain
+    links:
+      - postgres-base
+    ports:
+      - "5432:5432"
+    depends_on:
+      - postgres-base
+    networks:
+      - ssnnw
+
+  postgres-base:
     image: postgres:latest
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
@@ -114,8 +133,6 @@ services:
       options:
         gelf-address: 'udp://localhost:12201'
         tag: postgres
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -131,6 +148,25 @@ services:
       - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
 
   postgres-facade:
+    image: edoburu/pgbouncer
+    environment:
+      - DB_USER=facade
+      - DB_PASSWORD=facade
+      - DB_HOST=postgres-facade-base
+      - DB_NAME=ssn_service
+      - POOL_MODE=session
+      - ADMIN_USERS=facade
+      - AUTH_TYPE=plain
+    links:
+      - postgres-facade-base
+    ports:
+      - "5433:5432"
+    depends_on:
+      - postgres-facade-base
+    networks:
+      - ssnnw
+
+  postgres-facade-base:
     image: postgres:latest
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
@@ -143,8 +179,6 @@ services:
       options:
         gelf-address: 'udp://localhost:12201'
         tag: postgres
-    ports:
-      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
