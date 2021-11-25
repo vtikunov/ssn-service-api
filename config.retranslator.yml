@@ -38,13 +38,11 @@ database:
   password: docker
   name: ssn_service_api
   sslmode: disable
-  migrations: migrations
   driver: pgx
 
 kafka:
-  capacity: 512
   topic: "ssn-service-events"
-  groupId: "ssn-service-api"
   brokers:
-    - "kafka:9092"
-    - "localhost:9094"
+    - "kafka-1:9092"
+    - "kafka-2:9092"
+  partitionFactor: 10

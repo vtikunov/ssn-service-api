@@ -32,7 +32,7 @@ type eventRepo interface {
 }
 
 type eventSender interface {
-	Send(ctx context.Context, serviceEvent *subscription.ServiceEvent) error
+	Send(event *subscription.ServiceEvent) error
 }
 
 type retranslator struct {

@@ -21,7 +21,7 @@ type Producer interface {
 }
 
 type eventSender interface {
-	Send(ctx context.Context, serviceEvent *subscription.ServiceEvent) error
+	Send(event *subscription.ServiceEvent) error
 }
 
 type eventRepoUnlockRemover interface {
@@ -104,7 +104,7 @@ func (p *producer) sendEventsAndUnlockOrRemove(ctx context.Context, events []sub
 		})
 
 		for i, eventForService := range eventsForService {
-			if err := p.sender.Send(ctx, &eventsForService[i]); err != nil {
+			if err := p.sender.Send(&eventsForService[i]); err != nil {
 				logger.ErrorKV(ctx, "producer: failed to send event", "eventID", eventForService.ID, "err", err)
 
 				for ; i < len(eventsForService); i++ {

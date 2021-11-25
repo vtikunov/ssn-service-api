@@ -29,7 +29,7 @@ COPY --from=builder /home/${GITHUB_PATH}/config.retranslator.yml .
 
 COPY --from=builder /go/bin/dlv .
 
-RUN chown root:root grpc-server
+RUN chown root:root retranslator
 
 EXPOSE 40000
 

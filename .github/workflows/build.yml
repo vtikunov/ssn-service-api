@@ -36,3 +36,7 @@ jobs:
         shell: bash
         run: |
           make build-go-retranslator
+      - name: Build facade
+        shell: bash
+        run: |
+          make build-go-facade

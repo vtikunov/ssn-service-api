@@ -18,7 +18,7 @@ CREATE TYPE service_event_status AS ENUM ('DEFERRED', 'PROCESSED');
 CREATE TABLE service_events
 (
     id         BIGSERIAL PRIMARY KEY,
-    service_id BIGSERIAL             NOT NULL,
+    service_id BIGINT                NOT NULL,
     type       service_event_type    NOT NULL,
     subtype    service_event_subtype NOT NULL DEFAULT 'NONE',
     status     service_event_status  NOT NULL,

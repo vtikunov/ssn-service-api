@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/ozonmp/ssn-service-api/internal/metrics"
-
 	"github.com/pressly/goose/v3"
 
 	_ "github.com/jackc/pgx/v4"
@@ -15,6 +13,7 @@ import (
 
 	"github.com/ozonmp/ssn-service-api/internal/config"
 	"github.com/ozonmp/ssn-service-api/internal/database"
+	"github.com/ozonmp/ssn-service-api/internal/metrics"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 	"github.com/ozonmp/ssn-service-api/internal/server"
 	"github.com/ozonmp/ssn-service-api/internal/tracer"

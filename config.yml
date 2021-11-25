@@ -37,7 +37,7 @@ database:
   port: 5432
   user: docker
   password: docker
+  migrations: migrations/grpc-server
   name: ssn_service_api
   sslmode: disable
-  migrations: migrations
   driver: pgx

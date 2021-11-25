@@ -29,7 +29,7 @@ services:
       retries: 3
       start_period: 20s
     volumes:
-      - ./migrations:/root/migrations
+      - ./migrations/grpc-server:/root/migrations/grpc-server
       - ./config.yml:/root/config.yml
     command: ["./grpc-server", "--migration"]
 
@@ -47,10 +47,12 @@ services:
       - ssnnw
     depends_on:
       - postgres
-      - kafka
+      - kafka-1
+      - kafka-2
     links:
       - postgres
-      - kafka
+      - kafka-1
+      - kafka-2
     ports:
       - "9101:9101" # Metrics prometheus
       - "8001:8001" # Status prometheus
@@ -64,7 +66,61 @@ services:
     volumes:
       - ./config.retranslator.yml:/root/config.retranslator.yml
 
+  ssn-service-facade:
+    build:
+      context: .
+      dockerfile: docker/facade/Dockerfile
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ssn-service-facade
+    networks:
+      - ssnnw
+    depends_on:
+      - postgres-facade
+      - kafka-1
+      - kafka-2
+    links:
+      - postgres-facade
+      - kafka-1
+      - kafka-2
+    ports:
+      - "9102:9101" # Metrics prometheus
+      - "8002:8001" # Status prometheus
+      - "40002:40000" # Debug port
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8002/live' ]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - ./migrations/facade:/root/migrations/facade
+      - ./config.facade.yml:/root/config.facade.yml
+    command: [ "./facade", "--migration" ]
+
   postgres:
+    image: edoburu/pgbouncer
+    environment:
+      - DB_USER=docker
+      - DB_PASSWORD=docker
+      - DB_HOST=postgres-base
+      - DB_NAME=ssn_service_api
+      - POOL_MODE=session
+      - ADMIN_USERS=docker
+      - AUTH_TYPE=plain
+    links:
+      - postgres-base
+    ports:
+      - "5432:5432"
+    depends_on:
+      - postgres-base
+    networks:
+      - ssnnw
+
+  postgres-base:
     image: postgres:latest
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
@@ -77,8 +133,6 @@ services:
       options:
         gelf-address: 'udp://localhost:12201'
         tag: postgres
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -91,6 +145,52 @@ services:
     volumes:
       - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./_data/pgdata:/var/lib/postgresql/data
+      - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+
+  postgres-facade:
+    image: edoburu/pgbouncer
+    environment:
+      - DB_USER=facade
+      - DB_PASSWORD=facade
+      - DB_HOST=postgres-facade-base
+      - DB_NAME=ssn_service
+      - POOL_MODE=session
+      - ADMIN_USERS=facade
+      - AUTH_TYPE=plain
+    links:
+      - postgres-facade-base
+    ports:
+      - "5433:5432"
+    depends_on:
+      - postgres-facade-base
+    networks:
+      - ssnnw
+
+  postgres-facade-base:
+    image: postgres:latest
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ssn_service
+      APP_DB_USER: facade
+      APP_DB_PASS: facade
+    networks:
+      - ssnnw
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    volumes:
+      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./_data/pgdata_1:/var/lib/postgresql/data
       - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
 
   zookeeper:
@@ -111,7 +211,7 @@ services:
     networks:
       - ssnnw
 
-  kafka:
+  kafka-1:
     image: confluentinc/cp-kafka
     restart: unless-stopped
     logging:
@@ -125,11 +225,36 @@ services:
       - "9094:9094"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:32181"
-      KAFKA_LISTENERS: INTERNAL://kafka:9092,OUTSIDE://kafka:9094
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,OUTSIDE://localhost:9094
+      KAFKA_LISTENERS: INTERNAL://kafka-1:9092,OUTSIDE://kafka-1:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:9092,OUTSIDE://localhost:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_NUM_PARTITIONS: 10
+    command: sh -c "((sleep 15 && kafka-topics --create --zookeeper zookeeper:32181 --replication-factor 1 --partitions 1 --topic templates)&) && /etc/confluent/docker/run"
+    networks:
+      - ssnnw
+
+  kafka-2:
+    image: confluentinc/cp-kafka
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9095:9094"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:32181"
+      KAFKA_LISTENERS: INTERNAL://kafka-2:9092,OUTSIDE://kafka-2:9095
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:9092,OUTSIDE://localhost:9095
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_NUM_PARTITIONS: 10
     command: sh -c "((sleep 15 && kafka-topics --create --zookeeper zookeeper:32181 --replication-factor 1 --partitions 1 --topic templates)&) && /etc/confluent/docker/run"
     networks:
       - ssnnw
@@ -138,13 +263,17 @@ services:
     image: obsidiandynamics/kafdrop
     restart: unless-stopped
     depends_on:
-      - kafka
+      - kafka-1
+      - kafka-2
     ports:
       - "9001:9001"
     environment:
       SERVER_PORT: 9001
-      KAFKA_BROKERCONNECT: "kafka:9092"
+      KAFKA_BROKERCONNECT: kafka-1:9092, kafka-2:9092
       JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+      CMD_ARGS: "--message.format=PROTOBUF --protobufdesc.directory=/var/protobuf_desc"
+    volumes:
+      - ./api/ozonmp/ssn_service_api/v1:/var/protobuf_desc
     networks:
       - ssnnw
 

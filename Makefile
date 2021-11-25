@@ -51,6 +51,7 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
 .generate-go: .build-go-tools
 	$(BUF_EXE) generate
 	./bin/add-debug-header-to-swagger swagger/ozonmp/ssn_service_api/v1/ssn_service_api.swagger.json
+	protoc -o api/ozonmp/ssn_service_api/v1/ssn_service_api.desc  -I api --include_imports api/ozonmp/ssn_service_api/v1/ssn_service_api.proto
 
 .generate-python:
 	$(BUF_EXE) generate --template buf.gen.python.yaml
@@ -100,10 +101,20 @@ build-go-retranslator:
 	go mod download && CGO_ENABLED=0  go build \
     		-tags='no_mysql no_sqlite3' \
     		-ldflags=" \
-    			-X 'github.com/$(SERVICE_PATH)/internal/config.version=$(VERSION)' \
-    			-X 'github.com/$(SERVICE_PATH)/internal/config.commitHash=$(COMMIT_HASH)' \
+    			-X 'github.com/$(SERVICE_PATH)/internal/retranslator/config.version=$(VERSION)' \
+    			-X 'github.com/$(SERVICE_PATH)/internal/retranslator/config.commitHash=$(COMMIT_HASH)' \
     		" \
     		-o ./bin/retranslator$(shell go env GOEXE) ./cmd/retranslator/main.go
+
+.PHONY: build-go-facade
+build-go-facade:
+	go mod download && CGO_ENABLED=0  go build \
+    		-tags='no_mysql no_sqlite3' \
+    		-ldflags=" \
+    			-X 'github.com/$(SERVICE_PATH)/internal/facade/config.version=$(VERSION)' \
+    			-X 'github.com/$(SERVICE_PATH)/internal/facade/config.commitHash=$(COMMIT_HASH)' \
+    		" \
+    		-o ./bin/facade$(shell go env GOEXE) ./cmd/facade/main.go
 
 .build-go-tools:
 	go mod download && CGO_ENABLED=0  go build \

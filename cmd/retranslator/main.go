@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/sender"
+
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/metrics"
 
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/server"
@@ -70,5 +72,7 @@ func main() {
 		}
 	}()
 
-	server.NewRetranslatorServer(db).Start(ctx, &cfg)
+	snd := sender.NewKafkaSender(ctx, cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.PartitionFactor)
+
+	server.NewRetranslatorServer(db, snd).Start(ctx, &cfg)
 }

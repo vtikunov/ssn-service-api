@@ -1,0 +1,40 @@
+project:
+  name: Ozon Marketplace Subscription Service Facade
+  debug: true
+  environment: development
+
+metrics:
+  host: 0.0.0.0
+  port: 9102
+  path: /metrics
+  subsystem: ssn_service_facade
+
+jaeger:
+  service: "ssn-service-facade"
+  host: "jaeger"
+  port: ":6831"
+
+status:
+  host: 0.0.0.0
+  port: 8001
+  livenessPath: /live
+  readinessPath: /ready
+  versionPath: /version
+
+database:
+  host: postgres-facade
+  port: 5432
+  user: facade
+  password: facade
+  migrations: migrations/facade
+  name: ssn_service
+  sslmode: disable
+  driver: pgx
+
+kafka:
+  topic: "ssn-service-events"
+  group: "ssn-service-facade"
+  brokers:
+    - "kafka-1:9092"
+    - "kafka-2:9092"
+  partitionFactor: 10
