@@ -5,9 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
-
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
 )
 
@@ -26,11 +25,16 @@ type channelLocator interface {
 	GetMainEventsWriteChannel() chan<- []subscription.ServiceEvent
 }
 
+type transactionalSession interface {
+	Execute(ctx context.Context, fn func(ctx context.Context, tx repo.QueryerExecer) error) error
+}
+
 type consumer struct {
 	batchTime      time.Duration
 	batchSize      uint64
 	channelLocator channelLocator
 	eventRepo      eventRepoLockUnlocker
+	txs            transactionalSession
 	doneChannel    chan interface{}
 	stopChannel    chan interface{}
 	onceStart      *sync.Once
@@ -54,6 +58,7 @@ func NewConsumer(
 	batchSize uint64,
 	channelLocator channelLocator,
 	eventRepo eventRepoLockUnlocker,
+	txs transactionalSession,
 ) *consumer {
 
 	if batchSize == 0 {
@@ -65,6 +70,7 @@ func NewConsumer(
 		batchSize:      batchSize,
 		channelLocator: channelLocator,
 		eventRepo:      eventRepo,
+		txs:            txs,
 		onceStart:      &sync.Once{},
 		onceStop:       &sync.Once{},
 	}
@@ -91,7 +97,18 @@ func (c *consumer) Start(ctx context.Context) (doneChannel <-chan interface{}) {
 				case <-c.stopChannel:
 					return
 				case <-timeout.C:
-					events, err := c.eventRepo.Lock(ctx, c.batchSize, nil)
+					var events []subscription.ServiceEvent
+					err := c.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
+						evs, err := c.eventRepo.Lock(ctx, c.batchSize, tx)
+						if err != nil {
+							return err
+						}
+
+						events = evs
+
+						return nil
+					})
+
 					if err != nil {
 						logger.ErrorKV(ctx, "consumer: failed to lock events", "err", err)
 
@@ -127,6 +144,7 @@ type consumerFactory struct {
 	batchSize      uint64
 	channelLocator channelLocator
 	eventRepo      eventRepoLockUnlocker
+	txs            transactionalSession
 }
 
 // NewConsumerFactory создает фабрику воркеров-консьюмеров.
@@ -145,6 +163,7 @@ func NewConsumerFactory(
 	batchSize uint64,
 	channelLocator channelLocator,
 	eventRepo eventRepoLockUnlocker,
+	txs transactionalSession,
 ) *consumerFactory {
 
 	return &consumerFactory{
@@ -152,10 +171,11 @@ func NewConsumerFactory(
 		batchSize:      batchSize,
 		channelLocator: channelLocator,
 		eventRepo:      eventRepo,
+		txs:            txs,
 	}
 }
 
 // Create создает воркера-консьюмера.
 func (cf *consumerFactory) Create(ctx context.Context) Consumer {
-	return NewConsumer(ctx, cf.batchTime, cf.batchSize, cf.channelLocator, cf.eventRepo)
+	return NewConsumer(ctx, cf.batchTime, cf.batchSize, cf.channelLocator, cf.eventRepo, cf.txs)
 }

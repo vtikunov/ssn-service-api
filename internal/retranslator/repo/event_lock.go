@@ -2,8 +2,8 @@ package repo
 
 import (
 	"context"
-
-	"github.com/ozonmp/ssn-service-api/internal/retranslator/metrics"
+	"encoding/binary"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 
@@ -11,10 +11,22 @@ import (
 
 	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/metrics"
+)
+
+var (
+	eventLocker = int32(binary.BigEndian.Uint32([]byte("service_events")))
+	lockLocker  = int32(binary.BigEndian.Uint32([]byte("lock")))
+	sqlLock     = fmt.Sprintf("select pg_try_advisory_xact_lock(%d, %d)", eventLocker, lockLocker)
 )
 
 func (r *eventRepo) Lock(ctx context.Context, n uint64, tx QueryerExecer) ([]subscription.ServiceEvent, error) {
 	execer := r.getExecer(tx)
+
+	_, err := execer.ExecContext(ctx, sqlLock)
+	if err != nil {
+		return nil, err
+	}
 
 	subQ := sq.Select("s.id").From("service_events s").PlaceholderFormat(sq.Dollar)
 	subQ = subQ.LeftJoin("service_events s1 on (s1.service_id = s.service_id AND s1.status = ?)", subscription.Processed)

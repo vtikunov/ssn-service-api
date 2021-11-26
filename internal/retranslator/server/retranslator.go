@@ -10,13 +10,14 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
-
 	"github.com/jmoiron/sqlx"
 
+	"github.com/ozonmp/ssn-service-api/internal/model/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/config"
+	"github.com/ozonmp/ssn-service-api/internal/retranslator/database"
 	"github.com/ozonmp/ssn-service-api/internal/retranslator/repo"
+
 	retranslatorpkg "github.com/ozonmp/ssn-service-api/internal/retranslator/retranslator"
 )
 
@@ -69,6 +70,7 @@ func (s *retranslatorServer) Start(ctx context.Context, cfg *config.Config) {
 		ctx,
 		&cfg.Retranslator,
 		repo.NewEventRepo(s.db),
+		database.NewTransactionalSession(s.db),
 		s.eventSender,
 	)
 

@@ -30,6 +30,9 @@ func Test_EventsLockSQL(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"id", "service_id", "type", "status", "payload", "updated_at"}).
 		AddRow(1, 2, subscription.Created, subscription.Processed, "{}", time.Now())
 
+	dbMock.ExpectExec("select pg_try_advisory_xact_lock(1936028278, 1819239275)").
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
 	dbMock.ExpectQuery(`
 				UPDATE service_events
 				SET status = $1,

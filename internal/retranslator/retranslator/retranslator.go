@@ -31,6 +31,10 @@ type eventRepo interface {
 	Remove(ctx context.Context, eventIDs []uint64, tx repo.QueryerExecer) error
 }
 
+type transactionalSession interface {
+	Execute(ctx context.Context, fn func(ctx context.Context, tx repo.QueryerExecer) error) error
+}
+
 type eventSender interface {
 	Send(event *subscription.ServiceEvent) error
 }
@@ -43,14 +47,14 @@ type retranslator struct {
 }
 
 // NewRetranslator создает новый ретранслятор.
-func NewRetranslator(ctx context.Context, cfg *config.Retranslator, repo eventRepo, sender eventSender) *retranslator {
+func NewRetranslator(ctx context.Context, cfg *config.Retranslator, repo eventRepo, txs transactionalSession, sender eventSender) *retranslator {
 	eventsChannel := make(chan []subscription.ServiceEvent, cfg.EventChannelSize)
 	channelLocator := channellocator.NewChannelLocator(eventsChannel)
 
 	consumerPool := consumerpool.NewConsumerPool(
 		ctx,
 		cfg.MaxConsumers,
-		consumer.NewConsumerFactory(cfg.ConsumerBatchTime, cfg.ConsumerBatchSize, channelLocator, repo),
+		consumer.NewConsumerFactory(cfg.ConsumerBatchTime, cfg.ConsumerBatchSize, channelLocator, repo, txs),
 		cfg.ConsumerTimeout,
 	)
 
