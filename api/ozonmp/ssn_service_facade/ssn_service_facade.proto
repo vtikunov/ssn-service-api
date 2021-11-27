@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package ozonmp.ssn_service_facade.v1;
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/ozonmp/ssn-service-api/pkg/ssn-service-facade;ssn_service_facade";
+
+// SsnServiceFacadeService - Service for reading services
+service SsnServiceFacadeService {
+  // DescribeServiceV1 - Describe a service
+  rpc DescribeServiceV1(DescribeServiceV1Request) returns (DescribeServiceV1Response) {
+  }
+  // ListServicesV1 - Services list
+  rpc ListServicesV1(ListServicesV1Request) returns (ListServicesV1Response) {
+  }
+}
+
+message Service {
+  uint64 id  = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message DescribeServiceV1Request {
+  uint64 service_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DescribeServiceV1Response {
+  Service service = 1;
+}
+
+message ListServicesV1Request {
+  uint64 offset = 1;
+  uint64 limit = 2 [(validate.rules).uint64={gt: 0, lte: 500}];
+}
+
+message ListServicesV1Response {
+  repeated Service services = 1;
+  bool is_has_prev_page = 2;
+  bool is_has_next_page = 3;
+}

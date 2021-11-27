@@ -1,16 +1,23 @@
 project:
-  name: Ozon Marketplace Subscription Service Facade
+  name: Ozon Marketplace Subscription Service Facade GRPC
   debug: true
   environment: development
+
+grpc:
+  host: 0.0.0.0
+  port: 8082
+  maxConnectionIdle: 5 # Minutes
+  timeout: 15 # Seconds
+  maxConnectionAge: 5 # Minutes
 
 metrics:
   host: 0.0.0.0
   port: 9100
   path: /metrics
-  subsystem: ssn_service_facade
+  subsystem: ssn_service_facade_grpc
 
 jaeger:
-  service: "ssn-service-facade"
+  service: "ssn-service-facade-grpc"
   host: "jaeger"
   port: ":6831"
 
@@ -26,15 +33,6 @@ database:
   port: 5432
   user: facade
   password: facade
-  migrations: migrations/facade
   name: ssn_service
   sslmode: disable
   driver: pgx
-
-kafka:
-  topic: "ssn-service-events"
-  group: "ssn-service-facade"
-  brokers:
-    - "kafka-1:9092"
-    - "kafka-2:9092"
-  partitionFactor: 10

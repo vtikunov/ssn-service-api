@@ -6,6 +6,7 @@ endif
 export GO111MODULE=on
 
 SERVICE_NAME=ssn-service-api
+SERVICE_FACADE_NAME=ssn-service-facade
 SERVICE_PATH=ozonmp/ssn-service-api
 
 PGV_VERSION:="v0.6.1"
@@ -64,6 +65,15 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
 .generate-finalize-python:
 	find pypkg/ssn-service-api -type d -not -path "pypkg/ssn-service-api/dist" -exec touch {}/__init__.py \;
 
+.PHONY: generate-facade
+generate-facade: .generate-install-buf .generate-facade
+
+.generate-facade:
+	$(BUF_EXE) generate --template buf.gen.facade.yaml
+	mv pkg/$(SERVICE_FACADE_NAME)/github.com/$(SERVICE_PATH)/pkg/$(SERVICE_FACADE_NAME)/* pkg/$(SERVICE_FACADE_NAME)
+	rm -rf pkg/$(SERVICE_FACADE_NAME)/github.com/
+	cd pkg/$(SERVICE_FACADE_NAME) && ls go.mod || (go mod init github.com/$(SERVICE_PATH)/pkg/$(SERVICE_FACADE_NAME) && go mod tidy)
+
 # ----------------------------------------------------------------
 
 .PHONY: deps
@@ -106,6 +116,19 @@ build-go-retranslator:
     		" \
     		-o ./bin/retranslator$(shell go env GOEXE) ./cmd/retranslator/main.go
 
+.PHONY: build-go-facade-grpc
+build-go-facade-grpc: generate-facade .build-go-facade-grpc
+
+.PHONY: build-go-bot
+build-go-bot:
+	go mod download && CGO_ENABLED=0  go build \
+    		-tags='no_mysql no_sqlite3' \
+    		-ldflags=" \
+    			-X 'github.com/$(SERVICE_PATH)/internal/bot/config.version=$(VERSION)' \
+    			-X 'github.com/$(SERVICE_PATH)/internal/bot/config.commitHash=$(COMMIT_HASH)' \
+    		" \
+    		-o ./bin/bot$(shell go env GOEXE) ./cmd/bot/main.go
+
 .PHONY: build-go-facade
 build-go-facade:
 	go mod download && CGO_ENABLED=0  go build \
@@ -115,6 +138,15 @@ build-go-facade:
     			-X 'github.com/$(SERVICE_PATH)/internal/facade/config.commitHash=$(COMMIT_HASH)' \
     		" \
     		-o ./bin/facade$(shell go env GOEXE) ./cmd/facade/main.go
+
+.build-go-facade-grpc:
+	go mod download && CGO_ENABLED=0  go build \
+    		-tags='no_mysql no_sqlite3' \
+    		-ldflags=" \
+    			-X 'github.com/$(SERVICE_PATH)/internal/facade/grpc/config.version=$(VERSION)' \
+    			-X 'github.com/$(SERVICE_PATH)/internal/facade/grpc/config.commitHash=$(COMMIT_HASH)' \
+    		" \
+    		-o ./bin/facade-grpc$(shell go env GOEXE) ./cmd/facade-grpc-server/main.go
 
 .build-go-tools:
 	go mod download && CGO_ENABLED=0  go build \

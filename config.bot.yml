@@ -1,0 +1,28 @@
+project:
+  name: Ozon Marketplace Subscription Service Bot
+  debug: true
+  environment: development
+
+metrics:
+  host: 0.0.0.0
+  port: 9103
+  path: /metrics
+  subsystem: ssn_service_bot
+
+jaeger:
+  service: "ssn-service-bot"
+  host: "jaeger"
+  port: ":6831"
+
+status:
+  host: 0.0.0.0
+  port: 8000
+  livenessPath: /live
+  readinessPath: /ready
+  versionPath: /version
+
+bot:
+  timeout: 60
+  listPerPage: 5
+  writeServiceServiceAddr: "ssn-service-api:8082"
+  readServiceServiceAddr: "ssn-service-facade-grpc:8082"

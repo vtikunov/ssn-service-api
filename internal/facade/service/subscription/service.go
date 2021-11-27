@@ -13,6 +13,8 @@ type serviceRepo interface {
 	Add(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) (bool, error)
 	Update(ctx context.Context, service *subscription.Service, tx repo.QueryerExecer) (bool, error)
 	Remove(ctx context.Context, serviceID, eventID uint64, tx repo.QueryerExecer) (bool, error)
+	Describe(ctx context.Context, serviceID uint64, tx repo.QueryerExecer) (*subscription.Service, error)
+	List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error)
 }
 
 type transactionalSession interface {
@@ -77,7 +79,7 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 }
 
 // Remove - удаляет сервис.
-func (s serviceService) Remove(ctx context.Context, serviceID uint64, eventID uint64) error {
+func (s *serviceService) Remove(ctx context.Context, serviceID uint64, eventID uint64) error {
 	sp := tracer.StartSpanFromContext(ctx, "service.Remove")
 	defer sp.Finish()
 
@@ -95,4 +97,18 @@ func (s serviceService) Remove(ctx context.Context, serviceID uint64, eventID ui
 	}
 
 	return err
+}
+
+func (s *serviceService) Describe(ctx context.Context, serviceID uint64) (*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "service.Describe")
+	defer sp.Finish()
+
+	return s.srvRepo.Describe(ctx, serviceID, nil)
+}
+
+func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error) {
+	sp := tracer.StartSpanFromContext(ctx, "service.List")
+	defer sp.Finish()
+
+	return s.srvRepo.List(ctx, offset, limit, nil)
 }

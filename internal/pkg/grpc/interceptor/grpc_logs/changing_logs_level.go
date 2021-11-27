@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 )
 
 // MetadataChangingLogsLevelUnaryServerInterceptor - добавляет возможность смены уровня логов через мета - Logs-Level.
