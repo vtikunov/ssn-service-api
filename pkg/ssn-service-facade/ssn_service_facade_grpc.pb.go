@@ -138,5 +138,5 @@ var SsnServiceFacadeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "ozonmp/ssn_service_facade/ssn_service_facade.proto",
+	Metadata: "ozonmp/ssn_service_facade/v1/ssn_service_facade.proto",
 }
