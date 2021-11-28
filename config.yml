@@ -41,3 +41,4 @@ database:
   name: ssn_service_api
   sslmode: disable
   driver: pgx
+  connectRetries: 10

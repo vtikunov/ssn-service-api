@@ -65,13 +65,14 @@ type Retranslator struct {
 
 // Database - contains all parameters database connection.
 type Database struct {
-	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Name     string `yaml:"name"`
-	SslMode  string `yaml:"sslmode"`
-	Driver   string `yaml:"driver"`
+	Host           string `yaml:"host"`
+	Port           string `yaml:"port"`
+	User           string `yaml:"user"`
+	Password       string `yaml:"password"`
+	Name           string `yaml:"name"`
+	SslMode        string `yaml:"sslmode"`
+	Driver         string `yaml:"driver"`
+	ConnectRetries uint64 `yaml:"connectRetries"`
 }
 
 // Project - contains all parameters project information.

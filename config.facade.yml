@@ -30,6 +30,7 @@ database:
   name: ssn_service
   sslmode: disable
   driver: pgx
+  connectRetries: 10
 
 kafka:
   topic: "ssn-service-events"
