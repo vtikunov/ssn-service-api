@@ -63,6 +63,7 @@ type Bot struct {
 	ListPerPage             uint64 `yaml:"listPerPage"`
 	WriteServiceServiceAddr string `yaml:"writeServiceServiceAddr"`
 	ReadServiceServiceAddr  string `yaml:"readServiceServiceAddr"`
+	ServicesCallRetries     uint64 `yaml:"servicesCallRetries"`
 }
 
 // Config - contains all configuration parameters in config package.

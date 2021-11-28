@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+
 	ssn_service_facade "github.com/ozonmp/ssn-service-api/pkg/ssn-service-facade"
 
 	ssn_service_api "github.com/ozonmp/ssn-service-api/pkg/ssn-service-api"
@@ -84,6 +86,7 @@ func (s *botServer) Start(ctx context.Context, cfg *config.Config, token string)
 		grpc.WithInsecure(),
 		grpc.WithChainUnaryInterceptor(
 			grpc_opentracing.UnaryClientInterceptor(),
+			grpc_retry.UnaryClientInterceptor(grpc_retry.WithMax(uint(cfg.Bot.ServicesCallRetries))),
 		),
 	)
 	if err != nil {
@@ -96,6 +99,7 @@ func (s *botServer) Start(ctx context.Context, cfg *config.Config, token string)
 		grpc.WithInsecure(),
 		grpc.WithChainUnaryInterceptor(
 			grpc_opentracing.UnaryClientInterceptor(),
+			grpc_retry.UnaryClientInterceptor(grpc_retry.WithMax(uint(cfg.Bot.ServicesCallRetries))),
 		),
 	)
 	if err != nil {
