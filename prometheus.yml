@@ -9,8 +9,16 @@ scrape_configs:
   - job_name: 'ssn-service-api-events-retranslator'
     static_configs:
       - targets:
-        - ssn-service-api-events-retranslator:9101
+        - ssn-service-api-events-retranslator:9100
   - job_name: 'ssn-service-facade'
     static_configs:
       - targets:
-        - ssn-service-facade:9102
+        - ssn-service-facade:9100
+  - job_name: 'ssn-service-facade-grpc'
+    static_configs:
+      - targets:
+        - ssn-service-facade-grpc:9100
+  - job_name: 'ssn-service-bot'
+    static_configs:
+      - targets:
+        - ssn-service-bot:9100
