@@ -3,8 +3,6 @@ syntax = "proto3";
 package ozonmp.ssn_service_facade.v1;
 
 import "validate/validate.proto";
-import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/ozonmp/ssn-service-api/pkg/ssn-service-facade;ssn_service_facade";
 
