@@ -46,3 +46,4 @@ kafka:
     - "kafka-1:9092"
     - "kafka-2:9092"
   partitionFactor: 10
+  sendRetryMax: 10

@@ -27,11 +27,12 @@ type kafkaSender struct {
 }
 
 // NewKafkaSender - создает сендера событий в Apache Kafka.
-func NewKafkaSender(ctx context.Context, brokers []string, topic string, partitionFactor uint8) *kafkaSender {
+func NewKafkaSender(ctx context.Context, brokers []string, topic string, partitionFactor uint8, retryMax uint64) *kafkaSender {
 	config := sarama.NewConfig()
 	config.Producer.Partitioner = newPartitionerConstructor(partitionFactor)
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
+	config.Producer.Retry.Max = int(retryMax)
 	producer, err := sarama.NewSyncProducer(brokers, config)
 
 	if err != nil {

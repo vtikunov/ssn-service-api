@@ -72,7 +72,7 @@ func main() {
 		}
 	}()
 
-	snd := sender.NewKafkaSender(ctx, cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.PartitionFactor)
+	snd := sender.NewKafkaSender(ctx, cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.PartitionFactor, cfg.Kafka.SendRetryMax)
 
 	server.NewRetranslatorServer(db, snd).Start(ctx, &cfg)
 }

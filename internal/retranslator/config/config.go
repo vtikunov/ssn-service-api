@@ -103,6 +103,7 @@ type Kafka struct {
 	Topic           string   `yaml:"topic"`
 	Brokers         []string `yaml:"brokers"`
 	PartitionFactor uint8    `yaml:"partitionFactor"`
+	SendRetryMax    uint64   `yaml:"sendRetryMax"`
 }
 
 // Status config for service.
