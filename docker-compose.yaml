@@ -115,8 +115,10 @@ services:
       - ssnnw
     depends_on:
       - postgres-facade
+      - redis
     links:
       - postgres-facade
+      - redis
     ports:
       - "8083:8082" # gRPC
       - "9103:9100" # Metrics prometheus
@@ -318,6 +320,33 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 10
     command: sh -c "((sleep 15 && kafka-topics --create --zookeeper zookeeper:32181 --replication-factor 1 --partitions 1 --topic templates)&) && /etc/confluent/docker/run"
+    networks:
+      - ssnnw
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ssnnw
+
+  redis-ui:
+    image: patrikx3/p3x-redis-ui:latest
+    restart: unless-stopped
+    depends_on:
+      - redis
+    links:
+      - redis
+    ports:
+      - "7843:7843"
+    volumes:
+      - ./docker/redis-ui/.p3xrs-conns.json:/settings/.p3xrs-conns.json
     networks:
       - ssnnw
 

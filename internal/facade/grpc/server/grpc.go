@@ -29,6 +29,7 @@ import (
 	"github.com/ozonmp/ssn-service-api/internal/facade/database"
 	"github.com/ozonmp/ssn-service-api/internal/facade/grpc/api"
 	"github.com/ozonmp/ssn-service-api/internal/facade/grpc/config"
+	"github.com/ozonmp/ssn-service-api/internal/facade/redis"
 	"github.com/ozonmp/ssn-service-api/internal/facade/service/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/grpc/interceptor/grpc_logs"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
@@ -108,7 +109,8 @@ func (s *grpcServer) Start(ctx context.Context, cfg *config.Config) {
 
 	r := servicerepo.NewServiceRepo(s.db)
 	txs := database.NewTransactionalSession(s.db)
-	srv := subscription.NewServiceService(r, txs)
+	rd := redis.NewRedisRing(cfg.Redis.Addresses)
+	srv := subscription.NewServiceService(r, txs, redis.NewServiceCache(rd, cfg.Redis.MaxCacheSize, cfg.Redis.CacheTTL))
 
 	pbf.RegisterSsnServiceFacadeServiceServer(grpcServer, api.NewServiceAPI(srv))
 

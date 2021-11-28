@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -35,6 +36,13 @@ type Database struct {
 	SslMode        string `yaml:"sslmode"`
 	Driver         string `yaml:"driver"`
 	ConnectRetries uint64 `yaml:"connectRetries"`
+}
+
+// Redis - contains all redis settings.
+type Redis struct {
+	Addresses    map[string]string `yaml:"addresses"`
+	MaxCacheSize uint64            `yaml:"maxCacheSize"`
+	CacheTTL     time.Duration     `yaml:"cacheTTL"`
 }
 
 // Project - contains all parameters project information.
@@ -82,6 +90,7 @@ type Status struct {
 type Config struct {
 	Project  Project  `yaml:"project"`
 	Database Database `yaml:"database"`
+	Redis    Redis    `yaml:"redis"`
 	Metrics  Metrics  `yaml:"metrics"`
 	Jaeger   Jaeger   `yaml:"jaeger"`
 	Kafka    Kafka    `yaml:"kafka"`

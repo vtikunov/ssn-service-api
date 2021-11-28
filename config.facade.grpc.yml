@@ -37,3 +37,9 @@ database:
   sslmode: disable
   driver: pgx
   connectRetries: 10
+
+redis:
+  addresses:
+    local: "redis:6379"
+  maxCacheSize: 1000
+  cacheTTL: 1h

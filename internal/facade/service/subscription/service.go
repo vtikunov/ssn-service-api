@@ -6,6 +6,7 @@ import (
 	"github.com/ozonmp/ssn-service-api/internal/facade/metrics"
 	"github.com/ozonmp/ssn-service-api/internal/facade/model/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/facade/repo"
+	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 	"github.com/ozonmp/ssn-service-api/internal/tracer"
 )
 
@@ -17,20 +18,28 @@ type serviceRepo interface {
 	List(ctx context.Context, offset uint64, limit uint64, tx repo.QueryerExecer) ([]*subscription.Service, error)
 }
 
+type serviceCache interface {
+	Set(ctx context.Context, service *subscription.Service) error
+	Unset(ctx context.Context, serviceID uint64) error
+	Get(ctx context.Context, serviceID uint64) (*subscription.Service, error)
+}
+
 type transactionalSession interface {
 	Execute(ctx context.Context, fn func(ctx context.Context, tx repo.QueryerExecer) error) error
 }
 
 type serviceService struct {
-	srvRepo serviceRepo
-	txs     transactionalSession
+	srvRepo  serviceRepo
+	txs      transactionalSession
+	srvCache serviceCache
 }
 
 // NewServiceService создаёт инстанс сервиса ServiceService
-func NewServiceService(srvRepo serviceRepo, txs transactionalSession) *serviceService {
+func NewServiceService(srvRepo serviceRepo, txs transactionalSession, srvCache serviceCache) *serviceService {
 	return &serviceService{
-		srvRepo: srvRepo,
-		txs:     txs,
+		srvRepo:  srvRepo,
+		txs:      txs,
+		srvCache: srvCache,
 	}
 }
 
@@ -44,9 +53,13 @@ func (s *serviceService) Add(ctx context.Context, service *subscription.Service)
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
 		ok, err := s.srvRepo.Add(ctx, service, tx)
-		isAdded = ok
 
-		return err
+		if err != nil {
+			return err
+		}
+
+		isAdded = ok
+		return nil
 	})
 
 	if err == nil && isAdded {
@@ -66,9 +79,19 @@ func (s *serviceService) Update(ctx context.Context, service *subscription.Servi
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
 		ok, err := s.srvRepo.Update(ctx, service, tx)
+		if err != nil {
+			return err
+		}
+
+		if s.isCacheAware() {
+			if err = s.srvCache.Unset(ctx, service.ID); err != nil {
+				return err
+			}
+		}
+
 		isUpdated = ok
 
-		return err
+		return nil
 	})
 
 	if err == nil && isUpdated {
@@ -87,9 +110,19 @@ func (s *serviceService) Remove(ctx context.Context, serviceID uint64, eventID u
 
 	err := s.txs.Execute(ctx, func(ctx context.Context, tx repo.QueryerExecer) error {
 		ok, err := s.srvRepo.Remove(ctx, serviceID, eventID, tx)
+		if err != nil {
+			return err
+		}
+
+		if s.isCacheAware() {
+			if err = s.srvCache.Unset(ctx, serviceID); err != nil {
+				return err
+			}
+		}
+
 		isRemoved = ok
 
-		return err
+		return nil
 	})
 
 	if err == nil && isRemoved {
@@ -103,7 +136,29 @@ func (s *serviceService) Describe(ctx context.Context, serviceID uint64) (*subsc
 	sp := tracer.StartSpanFromContext(ctx, "service.Describe")
 	defer sp.Finish()
 
-	return s.srvRepo.Describe(ctx, serviceID, nil)
+	if !s.isCacheAware() {
+		return s.srvRepo.Describe(ctx, serviceID, nil)
+	}
+
+	service, err := s.srvCache.Get(ctx, serviceID)
+
+	if err != nil {
+		logger.ErrorKV(ctx, "service.Describe: failed getting service from cache", "err", err, "ID", serviceID)
+	}
+
+	if service != nil && err == nil {
+		return service, nil
+	}
+
+	service, err = s.srvRepo.Describe(ctx, serviceID, nil)
+
+	if service != nil && err == nil {
+		if cacheErr := s.srvCache.Set(ctx, service); cacheErr != nil {
+			logger.ErrorKV(ctx, "service.Describe: failed setting service in cache", "err", err, "service", service)
+		}
+	}
+
+	return service, err
 }
 
 func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) ([]*subscription.Service, error) {
@@ -111,4 +166,8 @@ func (s *serviceService) List(ctx context.Context, offset uint64, limit uint64) 
 	defer sp.Finish()
 
 	return s.srvRepo.List(ctx, offset, limit, nil)
+}
+
+func (s *serviceService) isCacheAware() bool {
+	return s.srvCache != nil
 }
