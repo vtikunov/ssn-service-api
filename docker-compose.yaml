@@ -54,8 +54,8 @@ services:
       - kafka-1
       - kafka-2
     ports:
-      - "9101:9101" # Metrics prometheus
-      - "8001:8001" # Status prometheus
+      - "9101:9100" # Metrics prometheus
+      - "8001:8000" # Status prometheus
       - "40001:40000" # Debug port
     healthcheck:
       test: [ 'CMD', 'curl', '-f', 'http://localhost:8001/live' ]
@@ -87,8 +87,8 @@ services:
       - kafka-1
       - kafka-2
     ports:
-      - "9102:9101" # Metrics prometheus
-      - "8002:8001" # Status prometheus
+      - "9102:9100" # Metrics prometheus
+      - "8002:8000" # Status prometheus
       - "40002:40000" # Debug port
     healthcheck:
       test: [ 'CMD', 'curl', '-f', 'http://localhost:8002/live' ]
@@ -100,6 +100,70 @@ services:
       - ./migrations/facade:/root/migrations/facade
       - ./config.facade.yml:/root/config.facade.yml
     command: [ "./facade", "--migration" ]
+
+  ssn-service-facade-grpc:
+    build:
+      context: .
+      dockerfile: docker/facade-grpc/Dockerfile
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ssn-service-facade-grpc
+    networks:
+      - ssnnw
+    depends_on:
+      - postgres-facade
+      - redis
+    links:
+      - postgres-facade
+      - redis
+    ports:
+      - "8083:8082" # gRPC
+      - "9103:9100" # Metrics prometheus
+      - "8003:8000" # Status prometheus
+      - "40003:40000" # Debug port
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8003/live' ]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - ./config.facade.grpc.yml:/root/config.facade.grpc.yml
+
+  ssn-service-bot:
+    build:
+      context: .
+      dockerfile: docker/bot/Dockerfile
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ssn-service-bot
+    networks:
+      - ssnnw
+    depends_on:
+      - ssn-service-api
+      - ssn-service-facade-grpc
+    links:
+      - ssn-service-api
+      - ssn-service-facade-grpc
+    ports:
+      - "9104:9100" # Metrics prometheus
+      - "8004:8000" # Status prometheus
+      - "40004:40000" # Debug port
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8004/live' ]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - ./.env:/root/.env
+      - ./config.bot.yml:/root/config.bot.yml
 
   postgres:
     image: edoburu/pgbouncer
@@ -256,6 +320,33 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_NUM_PARTITIONS: 10
     command: sh -c "((sleep 15 && kafka-topics --create --zookeeper zookeeper:32181 --replication-factor 1 --partitions 1 --topic templates)&) && /etc/confluent/docker/run"
+    networks:
+      - ssnnw
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ssnnw
+
+  redis-ui:
+    image: patrikx3/p3x-redis-ui:latest
+    restart: unless-stopped
+    depends_on:
+      - redis
+    links:
+      - redis
+    ports:
+      - "7843:7843"
+    volumes:
+      - ./docker/redis-ui/.p3xrs-conns.json:/settings/.p3xrs-conns.json
     networks:
       - ssnnw
 

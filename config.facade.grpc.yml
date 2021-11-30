@@ -1,0 +1,45 @@
+project:
+  name: Ozon Marketplace Subscription Service Facade GRPC
+  debug: true
+  environment: development
+
+grpc:
+  host: 0.0.0.0
+  port: 8082
+  maxConnectionIdle: 5 # Minutes
+  timeout: 15 # Seconds
+  maxConnectionAge: 5 # Minutes
+
+metrics:
+  host: 0.0.0.0
+  port: 9100
+  path: /metrics
+  subsystem: ssn_service_facade_grpc
+
+jaeger:
+  service: "ssn-service-facade-grpc"
+  host: "jaeger"
+  port: ":6831"
+
+status:
+  host: 0.0.0.0
+  port: 8000
+  livenessPath: /live
+  readinessPath: /ready
+  versionPath: /version
+
+database:
+  host: postgres-facade
+  port: 5432
+  user: facade
+  password: facade
+  name: ssn_service
+  sslmode: disable
+  driver: pgx
+  connectRetries: 10
+
+redis:
+  addresses:
+    local: "redis:6379"
+  maxCacheSize: 1000
+  cacheTTL: 1h

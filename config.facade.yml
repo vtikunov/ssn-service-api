@@ -5,7 +5,7 @@ project:
 
 metrics:
   host: 0.0.0.0
-  port: 9102
+  port: 9100
   path: /metrics
   subsystem: ssn_service_facade
 
@@ -16,7 +16,7 @@ jaeger:
 
 status:
   host: 0.0.0.0
-  port: 8001
+  port: 8000
   livenessPath: /live
   readinessPath: /ready
   versionPath: /version
@@ -30,6 +30,13 @@ database:
   name: ssn_service
   sslmode: disable
   driver: pgx
+  connectRetries: 10
+
+redis:
+  addresses:
+    local: "redis:6379"
+  maxCacheSize: 1000
+  cacheTTL: 1h
 
 kafka:
   topic: "ssn-service-events"

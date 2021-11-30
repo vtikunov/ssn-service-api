@@ -15,6 +15,7 @@ import (
 	"github.com/ozonmp/ssn-service-api/internal/facade/config"
 	"github.com/ozonmp/ssn-service-api/internal/facade/database"
 	"github.com/ozonmp/ssn-service-api/internal/facade/kafka"
+	"github.com/ozonmp/ssn-service-api/internal/facade/redis"
 	"github.com/ozonmp/ssn-service-api/internal/facade/service/subscription"
 	"github.com/ozonmp/ssn-service-api/internal/pkg/logger"
 
@@ -62,7 +63,8 @@ func (s *consumerServer) Start(ctx context.Context, cfg *config.Config) {
 
 	r := servicerepo.NewServiceRepo(s.db)
 	txs := database.NewTransactionalSession(s.db)
-	srv := subscription.NewServiceService(r, txs)
+	rd := redis.NewRedisRing(cfg.Redis.Addresses)
+	srv := subscription.NewServiceService(r, txs, redis.NewServiceCache(rd, cfg.Redis.MaxCacheSize, cfg.Redis.CacheTTL))
 
 	for cn := uint8(0); cn < cfg.Kafka.PartitionFactor; cn++ {
 		err := kafka.StartConsuming(ctx, cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.Group, kafka.GetServiceEventConsume(srv))

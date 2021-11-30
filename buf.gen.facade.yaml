@@ -1,0 +1,19 @@
+version: v1
+plugins:
+  - name: go
+    out: pkg/ssn-service-facade
+    opt:
+      - paths=import
+    strategy: directory
+
+  - name: go-grpc
+    out: pkg/ssn-service-facade
+    opt:
+      - paths=import
+    strategy: directory
+
+  - name: validate
+    out: pkg/ssn-service-facade
+    opt:
+      - lang=go
+    strategy: directory

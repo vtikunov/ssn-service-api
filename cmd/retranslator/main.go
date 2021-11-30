@@ -50,7 +50,7 @@ func main() {
 		cfg.Database.SslMode,
 	)
 
-	db, err := database.NewPostgres(ctx, dsn, cfg.Database.Driver)
+	db, err := database.NewPostgres(ctx, dsn, cfg.Database.Driver, cfg.Database.ConnectRetries)
 	if err != nil {
 		logger.FatalKV(ctx, "failed init postgres", "err", err)
 	}
@@ -72,7 +72,7 @@ func main() {
 		}
 	}()
 
-	snd := sender.NewKafkaSender(ctx, cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.PartitionFactor)
+	snd := sender.NewKafkaSender(ctx, cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.PartitionFactor, cfg.Kafka.SendRetryMax)
 
 	server.NewRetranslatorServer(db, snd).Start(ctx, &cfg)
 }

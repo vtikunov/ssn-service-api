@@ -7,5 +7,6 @@ bin/
 _data/
 main
 bin
+.env
 
 cover.out

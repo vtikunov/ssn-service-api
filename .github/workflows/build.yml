@@ -40,3 +40,11 @@ jobs:
         shell: bash
         run: |
           make build-go-facade
+      - name: Build facade-grpc
+        shell: bash
+        run: |
+          make build-go-facade-grpc
+      - name: Build bot
+        shell: bash
+        run: |
+          make build-go-bot
