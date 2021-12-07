@@ -85,7 +85,7 @@ Service condition and its information
 
 Prometheus is an open-source systems monitoring and alerting toolkit
 
-- http://localhost:9090
+- http://localhost:9099
 
 ### Kafka
 
@@ -124,7 +124,7 @@ $ pgcli "postgresql://docker:docker@localhost:5432/ssn_service_api"
 ### Python client
 
 ```shell
-$ pip install --extra-index-url http://localhost:8081 grpc_ssn_service_api
+$ pip install --extra-index-url http://localhost:8088 grpc_ssn_service_api
 ```
 
 

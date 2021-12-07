@@ -404,7 +404,7 @@ services:
         gelf-address: 'udp://localhost:12201'
         tag: prometheus
     ports:
-      - "9090:9090"
+      - "9099:9090"
     networks:
       - ssnnw
     volumes:
@@ -508,7 +508,7 @@ services:
     networks:
       - ssnnw
     ports:
-      - "8081:8080"
+      - "8088:8080"
     volumes:
       - ./pypkg/ssn-service-api/dist:/data/packages
 
